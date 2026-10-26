@@ -16,9 +16,13 @@ h1{margin:4px 0 10px;font-size:22px}h1 span{color:#ff7a1a}
 #ov{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;justify-content:center;z-index:9}#ov.on{display:flex}#fm{background:#1b1029;width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);max-height:92vh;overflow:auto}#fm h3{margin:0 0 6px}#fm input.w{width:60%;text-align:left}#fm .calc{background:#221433;border-radius:12px;padding:4px 10px;margin:8px 0}#fm .calc input{width:70px}#fm .row button.p{background:#ff7a1a;color:#120a1a}#fm .row button.dl{background:#5a1420}
 h2{font-size:15px;opacity:.8;margin:16px 0 6px}ul{list-style:none;padding:0;margin:0}li{display:flex;justify-content:space-between;padding:10px 12px;background:#1b1029;border-radius:12px;margin-bottom:6px}li span{opacity:.65}
 details{margin-top:14px;background:#1b1029;border-radius:14px;padding:10px 12px}summary{font-weight:600;min-height:32px}label{display:flex;justify-content:space-between;align-items:center;margin:8px 0}input{font-size:16px;width:80px;padding:8px;border-radius:10px;border:0;background:#2b1b3d;color:#fff;text-align:center}
+#bac{background:#221433;border-radius:16px;padding:10px 12px;margin-bottom:12px;text-align:center;position:relative}#bv{font-size:48px;font-weight:800;line-height:1.1}#bac.g #bv{color:#3ddc84}#bac.a #bv{color:#ffb020}#bac.rd #bv{color:#ff4d5e}#bz{font-size:13px;opacity:.8}.disc{margin-top:6px;font-size:12px;font-weight:700;color:#ffd0d0;background:#5a142088;border-radius:10px;padding:6px}#gear{position:absolute;top:6px;right:6px;background:#2b1b3d;width:40px;height:40px;border-radius:12px;font-size:20px}#bset{display:none;text-align:left;margin-top:8px}#bset.on{display:block}#bset select{font-size:16px;padding:8px;border-radius:10px;border:0;background:#2b1b3d;color:#fff}
 </style></head><body><main>
 <h1>🎃 Drink <span>Counter</span></h1>
 <div class="stats"><div class="st"><b id="n">0</b><small>drinks</small></div><div class="st"><b id="sd">0.0</b><small>std drinks</small></div><div class="st"><b id="t">–</b><small>since first</small></div></div>
+<div id="bac" class="g"><button id="gear" aria-label="BAC settings">⚙️</button><small style="opacity:.7">estimated BAC</small><div id="bv">0.000</div><div id="bz">–</div>
+<div id="bset"><label>Body weight (kg)<input type="number" id="bw" step="0.5" min="20" inputmode="decimal"></label><label>Sex / body type<select id="bs"><option value="m">Male</option><option value="f">Female</option></select></label><label>Widmark r (male)<input type="number" id="brm" step="0.01" min="0.3" max="1" inputmode="decimal"></label><label>Widmark r (female)<input type="number" id="brf" step="0.01" min="0.3" max="1" inputmode="decimal"></label></div>
+<div class="disc">⚠️ Rough estimate only. Never use this to decide if you can drive.</div></div>
 <div class="grid" id="g"></div>
 <div class="row"><button id="edm">✏️ Edit custom</button></div>
 <div class="row" style="margin-top:0"><button id="undo">↩︎ Undo last</button><button class="r" id="reset">🌙 New night</button></div>
@@ -35,13 +39,19 @@ details{margin-top:14px;background:#1b1029;border-radius:14px;padding:10px 12px}
 <script>
 const DEF={Beer:{i:'🍺',v:1.4},Wine:{i:'🍷',v:1.5},'Spirit/shot':{i:'🥃',v:1},'Cider/RTD':{i:'🍹',v:1.5},Other:{i:'🧪',v:1}};
 let S=JSON.parse(localStorage.getItem('dc')||'null')||{vals:Object.fromEntries(Object.entries(DEF).map(([k,o])=>[k,o.v])),log:[]};
-S.custom=S.custom||[];let ED=false,CUR=null;
+S.custom=S.custom||[];S.bac=Object.assign({w:52.5,sex:'m',rm:0.68,rf:0.55},S.bac||{});let ED=false,CUR=null;
 const save=()=>localStorage.setItem('dc',JSON.stringify(S)),$=id=>document.getElementById(id);
 function add(k){S.log.push({k,v:k==='Water'?0:+S.vals[k],ts:Date.now()});navigator.vibrate&&navigator.vibrate(20);save();draw()}
 function addC(id){const c=S.custom.find(x=>x.id==id);if(!c)return;S.log.push({k:c.n,i:c.i||'🍸',v:+c.v,ts:Date.now()});navigator.vibrate&&navigator.vibrate(20);save();draw()}
 function openF(id){CUR=id||null;const c=S.custom.find(x=>x.id==id)||{};$('ft').textContent=id?'Edit custom drink':'New custom drink';$('fn').value=c.n||'';$('fi').value=c.i||'';$('fv').value=id?c.v:'';$('fz').value=c.z||'';$('cm').value=$('ca').value='';$('fd').style.display=id?'':'none';$('ov').classList.add('on');setTimeout(()=>$('fn').focus(),50)}
 function closeF(){$('ov').classList.remove('on');CUR=null}
-function draw(){const d=S.log.filter(x=>x.k!=='Water'),w=S.log.length-d.length;
+function bacAt(T){const B=S.bac,r=B.sex==='f'?+B.rf:+B.rm,W=+B.w*1000,D=S.log.filter(x=>x.k!=='Water'&&x.v>0);if(!D.length||!(W>0&&r>0))return 0;
+const ab=t=>D.reduce((a,x)=>a+x.v*10*Math.min(1,Math.max(0,(t-x.ts)/18e5)),0)/(W*r)*100;let b=0,t=D[0].ts,p=0;const st=6e4;
+while(t<T){const n=Math.min(T,t+st),q=ab(n);b=Math.max(0,b+(q-p)-0.015*(n-t)/36e5);p=q;t=n}return b}
+function drawBac(){const now=Date.now(),b=bacAt(now);$('bv').textContent=b.toFixed(3);$('bac').className=b>=0.05?'rd':b>=0.02?'a':'g';
+const lastAbs=Math.max(0,...S.log.map(x=>x.ts+18e5));let z=null;if(b>0||lastAbs>now){let t=Math.max(now,lastAbs),bb=bacAt(t);t+=bb/0.015*36e5;z=t}
+$('bz').textContent=z?'estimated back to 0.00 at '+new Date(z).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'at 0.00 now'}
+function draw(){drawBac();const d=S.log.filter(x=>x.k!=='Water'),w=S.log.length-d.length;
 $('n').textContent=d.length;$('sd').textContent=d.reduce((a,x)=>a+x.v,0).toFixed(1);
 if(d.length){const m=Math.floor((Date.now()-d[0].ts)/6e4);$('t').textContent=Math.floor(m/60)+'h '+(m%60)+'m'}else $('t').textContent='–';
 const E=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
@@ -59,6 +69,8 @@ $('fx').onclick=closeF;$('ov').onclick=e=>{if(e.target.id==='ov')closeF()};
 $('fs').onclick=()=>{const n=$('fn').value.trim(),v=parseFloat($('fv').value);if(!n){$('fn').focus();return}if(!(v>=0)){alert('Enter a standard drinks value (or use the calculator).');return}
 const o={n,i:$('fi').value.trim(),v,z:$('fz').value.trim()};if(CUR)Object.assign(S.custom.find(x=>x.id==CUR),o);else S.custom.push({id:Date.now().toString(36),...o});save();closeF();draw()};
 $('fd').onclick=()=>{if(CUR&&confirm('Delete this custom drink? (History entries stay.)')){S.custom=S.custom.filter(x=>x.id!=CUR);save();closeF();draw()}};
+$('gear').onclick=()=>$('bset').classList.toggle('on');
+[['bw','w'],['bs','sex'],['brm','rm'],['brf','rf']].forEach(([id,k])=>{$(id).value=S.bac[k];$(id).onchange=()=>{S.bac[k]=k==='sex'?$(id).value:(+$(id).value||S.bac[k]);$(id).value=S.bac[k];save();draw()}});
 draw();setInterval(draw,30000);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 </script></body></html>
