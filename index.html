@@ -1,0 +1,38 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Drinks">
+<meta name="theme-color" content="#120a1a"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Drink Counter</title><style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:#120a1a;color:#f3eaff;font:16px -apple-system,system-ui,sans-serif;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+main{padding:calc(env(safe-area-inset-top) + 12px) calc(env(safe-area-inset-right) + 14px) calc(env(safe-area-inset-bottom) + 20px) calc(env(safe-area-inset-left) + 14px);max-width:520px;margin:auto}
+h1{margin:4px 0 10px;font-size:22px}h1 span{color:#ff7a1a}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}.st{background:#221433;border-radius:16px;padding:10px;text-align:center}.st b{display:block;font-size:30px;color:#ff9a3c}.st small{opacity:.7;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{font:inherit;color:inherit;border:0;border-radius:18px;cursor:pointer}
+.d{background:linear-gradient(160deg,#3a1d5c,#26133d);min-height:92px;font-size:20px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px #ff7a1a33}.d:active{transform:scale(.96);background:#ff7a1a;color:#120a1a}.d em{font-style:normal;font-size:13px;opacity:.75;font-weight:500}.d.w{background:linear-gradient(160deg,#123a4a,#0d2633);box-shadow:inset 0 0 0 2px #3cc8ff44}
+.row{display:flex;gap:10px;margin:12px 0}.row button{flex:1;min-height:52px;background:#2b1b3d;font-weight:600}.row .r{background:#5a1420}
+h2{font-size:15px;opacity:.8;margin:16px 0 6px}ul{list-style:none;padding:0;margin:0}li{display:flex;justify-content:space-between;padding:10px 12px;background:#1b1029;border-radius:12px;margin-bottom:6px}li span{opacity:.65}
+details{margin-top:14px;background:#1b1029;border-radius:14px;padding:10px 12px}summary{font-weight:600;min-height:32px}label{display:flex;justify-content:space-between;align-items:center;margin:8px 0}input{font-size:16px;width:80px;padding:8px;border-radius:10px;border:0;background:#2b1b3d;color:#fff;text-align:center}
+</style></head><body><main>
+<h1>🎃 Drink <span>Counter</span></h1>
+<div class="stats"><div class="st"><b id="n">0</b><small>drinks</small></div><div class="st"><b id="sd">0.0</b><small>std drinks</small></div><div class="st"><b id="t">–</b><small>since first</small></div></div>
+<div class="grid" id="g"></div>
+<div class="row"><button id="undo">↩︎ Undo last</button><button class="r" id="reset">🌙 New night</button></div>
+<h2>History</h2><ul id="h"></ul>
+<details><summary>⚙️ Standard drink values</summary><div id="cfg"></div><small style="opacity:.6">Aus std drink = 10g alcohol. Guide only.</small></details>
+</main><script>
+const DEF={Beer:{i:'🍺',v:1.4},Wine:{i:'🍷',v:1.5},'Spirit/shot':{i:'🥃',v:1},'Cider/RTD':{i:'🍹',v:1.5},Other:{i:'🧪',v:1}};
+let S=JSON.parse(localStorage.getItem('dc')||'null')||{vals:Object.fromEntries(Object.entries(DEF).map(([k,o])=>[k,o.v])),log:[]};
+const save=()=>localStorage.setItem('dc',JSON.stringify(S)),$=id=>document.getElementById(id);
+function add(k){S.log.push({k,v:k==='Water'?0:+S.vals[k],ts:Date.now()});navigator.vibrate&&navigator.vibrate(20);save();draw()}
+function draw(){const d=S.log.filter(x=>x.k!=='Water'),w=S.log.length-d.length;
+$('n').textContent=d.length;$('sd').textContent=d.reduce((a,x)=>a+x.v,0).toFixed(1);
+if(d.length){const m=Math.floor((Date.now()-d[0].ts)/6e4);$('t').textContent=Math.floor(m/60)+'h '+(m%60)+'m'}else $('t').textContent='–';
+$('g').innerHTML=Object.keys(DEF).map(k=>`<button class="d" onclick="add('${k}')">${DEF[k].i} ${k}<em>${(+S.vals[k]).toFixed(1)} std</em></button>`).join('')+`<button class="d w" onclick="add('Water')">💧 Water<em>${w} glass${w==1?'':'es'}</em></button>`;
+$('h').innerHTML=S.log.slice().reverse().map(x=>`<li>${x.k==='Water'?'💧':DEF[x.k].i} ${x.k}${x.v?' · '+x.v.toFixed(1):''}<span>${new Date(x.ts).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span></li>`).join('')||'<li><span>No drinks yet – happy Halloween 👻</span></li>'}
+$('undo').onclick=()=>{S.log.pop();save();draw()};
+$('reset').onclick=()=>{if(confirm('Start a new night? This clears the current session.')){S.log=[];save();draw()}};
+$('cfg').innerHTML=Object.keys(DEF).map(k=>`<label>${DEF[k].i} ${k}<input type="number" step="0.1" min="0" inputmode="decimal" value="${S.vals[k]}" onchange="S.vals['${k}']=+this.value||0;save();draw()"></label>`).join('');
+draw();setInterval(draw,30000);
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
