@@ -50,7 +50,7 @@ const ab=t=>D.reduce((a,x)=>a+x.v*10*Math.min(1,Math.max(0,(t-x.ts)/18e5)),0)/(W
 while(t<T){const n=Math.min(T,t+st),q=ab(n);b=Math.max(0,b+(q-p)-0.015*(n-t)/36e5);p=q;t=n}return b}
 function drawBac(){const now=Date.now(),b=bacAt(now);$('bv').textContent=b.toFixed(3);$('bac').className=b>=0.05?'rd':b>=0.02?'a':'g';
 const lastAbs=Math.max(0,...S.log.map(x=>x.ts+18e5));let z=null;if(b>0||lastAbs>now){let t=Math.max(now,lastAbs),bb=bacAt(t);t+=bb/0.015*36e5;z=t}
-$('bz').textContent=z?'estimated back to 0.00 at '+new Date(z).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'at 0.00 now'}
+let label='at 0.00 now';if(z){const d=new Date(z),time=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),date=new Intl.DateTimeFormat('en-AU',{weekday:'short',day:'numeric',month:'short'}).formatToParts(d).filter(p=>p.type!=='literal').map(p=>p.value).join(' ');label='estimated back to 0.00 at '+time+', '+date}$('bz').textContent=label}
 function draw(){drawBac();const d=S.log.filter(x=>x.k!=='Water'),w=S.log.length-d.length;
 $('n').textContent=d.length;$('sd').textContent=d.reduce((a,x)=>a+x.v,0).toFixed(1);
 if(d.length){const m=Math.floor((Date.now()-d[0].ts)/6e4);$('t').textContent=Math.floor(m/60)+'h '+(m%60)+'m'}else $('t').textContent='–';
