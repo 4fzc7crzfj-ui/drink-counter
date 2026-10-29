@@ -120,6 +120,39 @@ h1 span { color: var(--beer); }
 }
 .rates b { color: var(--foam); font-weight: 750; }
 .dot { margin: 0 6px; opacity: .5; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip {
+  font-size: 11px; font-weight: 800; letter-spacing: .01em;
+  padding: 3px 8px; border-radius: 999px; background: #261433; color: var(--beer);
+}
+.chip.hot { background: var(--beer); color: #1A0F24; }
+.golden {
+  position: absolute; z-index: 3; width: 62px; height: 62px; border: 0; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8, #f5a623 58%, #a86b10);
+  box-shadow: 0 0 16px rgba(245,166,35,.85); font-size: 28px; cursor: pointer;
+  animation: floaty 1.3s ease-in-out infinite;
+}
+@keyframes floaty { 50% { transform: translateY(-6px); } }
+.toast {
+  position: absolute; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 10px);
+  z-index: 8; background: #261433; color: var(--foam); border-radius: 14px;
+  padding: 10px 12px; text-align: center; font-weight: 800; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(245,166,35,.45), 0 10px 24px rgba(0,0,0,.4);
+}
+.tabs { display: flex; gap: 4px; padding: 0 10px 6px; overflow-x: auto; }
+.tabs button {
+  flex: 1 1 auto; min-height: 34px; padding: 0 6px; border: 0; border-radius: 999px;
+  background: #261433; color: var(--foam); font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.tabs button.on { background: var(--beer); color: #1A0F24; }
+#pour[data-skin="pint"] svg { transform: scaleX(.84) scaleY(1.06); filter: hue-rotate(-12deg) saturate(1.25); }
+#pour[data-skin="jug"] svg { transform: scaleX(1.12) scaleY(.9); }
+#pour[data-skin="goon"] svg { filter: grayscale(.55) sepia(.35) brightness(1.15); }
+#pour[data-skin="keg"] svg { filter: sepia(.45) saturate(1.7) brightness(1.12); }
+.app[data-venue="rsl"] { --bg: #102218; --beer: #e4c15a; background: radial-gradient(ellipse at 50% 18%, rgba(80,160,90,.28), transparent 55%), var(--bg); }
+.app[data-venue="garden"] { --bg: #17240f; --beer: #d6e36a; background: radial-gradient(ellipse at 50% 18%, rgba(170,190,60,.25), transparent 55%), var(--bg); }
+.app[data-venue="oktober"] { --bg: #2a140c; --beer: #ff8a1a; background: radial-gradient(ellipse at 50% 18%, rgba(255,120,20,.28), transparent 55%), var(--bg); }
+.app[data-venue="moon"] { --bg: #0c1224; --beer: #d5e4ff; background: radial-gradient(ellipse at 50% 18%, rgba(150,180,255,.22), transparent 55%), var(--bg); }
 .stage {
   flex: 1;
   min-height: 0;
@@ -404,6 +437,12 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     <div id="count" class="count">0</div>
     <div class="unit">schooners</div>
     <div class="rates"><b id="sps">0.0</b> / sec<span class="dot">·</span><b id="tpc">1</b> / tap</div>
+    <div class="chips">
+      <span class="chip" id="hhChip">Happy Hour</span>
+      <span class="chip hot" id="comboChip" hidden>Combo</span>
+      <span class="chip hot" id="frenzyChip" hidden>Frenzy</span>
+      <span class="chip" id="tokenChip" hidden></span>
+    </div>
   </header>
   <div class="stage" id="stage">
     <p class="hint" id="hint">Tap the schooner</p>
@@ -470,6 +509,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
       </svg>
     </button>
     <div id="floats"></div>
+    <button type="button" id="golden" class="golden" hidden aria-label="Golden schooner">🍺</button>
   </div>
   <footer>
     <button type="button" id="shopBtn" aria-label="Shop">Shop <span id="badge" class="badge" hidden>0</span></button>
@@ -483,8 +523,15 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
         <h2 id="shopTitle">Shop</h2>
         <button type="button" id="closeShop" aria-label="Close shop">✕</button>
       </div>
-      <p class="blurb">Upgrades are one-time. Another of the same cellar item costs about 15% more.</p>
-      <div class="qty" role="group" aria-label="How many to buy">
+      <div class="tabs" role="tablist" aria-label="Shop sections">
+        <button type="button" data-tab="cellar" class="on" role="tab">Cellar</button>
+        <button type="button" data-tab="upgrades" role="tab" aria-label="Upgrades">Ups</button>
+        <button type="button" data-tab="venues" role="tab">Rooms</button>
+        <button type="button" data-tab="skins" role="tab">Looks</button>
+        <button type="button" data-tab="more" role="tab">More</button>
+      </div>
+      <p class="blurb" id="tabBlurb">Another of the same cellar item costs about 15% more.</p>
+      <div class="qty" id="qtyRow" role="group" aria-label="How many to buy">
         <button type="button" data-qty="1" class="on">Buy 1</button>
         <button type="button" data-qty="10">Buy 10</button>
       </div>
@@ -509,6 +556,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
       </div>
     </div>
   </div>
+  <div id="toast" class="toast" hidden></div>
 </div>
 <noscript><p style="padding:24px;text-align:center">Turn on JavaScript to play. Nothing leaves this phone.</p></noscript>
 <script src="economy.js"></script>
@@ -551,6 +599,14 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   var saveTimer = 0;
   var lastLive = 0;
   var floaterCount = 0;
+  var shopTab = 'cellar';
+  var combo = 0;
+  var lastTapAt = 0;
+  var comboDecayAt = 0;
+  var nextGolden = Date.now() + 20000 + Math.random() * 40000;
+  var goldenHideAt = 0;
+  var toastQueue = [];
+  var toastOn = false;
 
   (function buildWallpaper() {
     var host = $('wallpaper');
@@ -692,6 +748,13 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     if (el.textContent !== text) el.textContent = text;
   }
 
+  function fmtMult(m) {
+    if (!isFinite(m) || m <= 0) return '1';
+    var r = Math.round(m * 100) / 100;
+    if (Math.abs(r - Math.round(r)) < 0.001) return String(Math.round(r));
+    return String(r);
+  }
+
   function account() {
     var now = Date.now();
     var elapsed = (now - state.t) / 1000;
@@ -704,12 +767,12 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   }
 
   function signature() {
-    var parts = [String(buyMode)];
+    var daily = state.daily || {};
+    var parts = [shopTab, String(buyMode), String(state.tokens), state.venue, state.skin, String(state.levels.gold), String(state.levels.diamond), String(state.prestiges), daily.day || '', String(daily.progress || 0), daily.done ? '1' : '0', daily.claimed ? '1' : '0', String(Object.keys(state.achievements).length)];
     var i;
     for (i = 0; i < E.UPGRADES.length; i++) {
       var u = E.UPGRADES[i];
-      var owned = !!state.upgrades[u.id];
-      parts.push(u.id + (owned ? 'o' : (state.schooners + 1e-4 >= u.cost ? 'y' : 'n')));
+      parts.push(u.id + (state.upgrades[u.id] ? 'o' : (state.schooners + 1e-4 >= u.cost ? 'y' : 'n')));
     }
     for (i = 0; i < E.PRODUCERS.length; i++) {
       var p = E.PRODUCERS[i];
@@ -725,48 +788,97 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     });
   }
 
+  function itemHtml(opts) {
+    return '<button type="button" class="item' + (opts.cls || '') + '" data-kind="' + opts.kind + '" data-buy="' + opts.id + '"' + (opts.disabled ? ' disabled' : '') + '>' +
+      '<span class="ico" aria-hidden="true">' + opts.icon + '</span>' +
+      '<span class="meta"><span class="name">' + esc(opts.name) + (opts.own ? '<span class="own">' + esc(opts.own) + '</span>' : '') + '</span>' +
+      '<span class="desc">' + esc(opts.desc) + '</span>' +
+      (opts.rate ? '<span class="rate">' + opts.rate + '</span>' : '') + '</span>' +
+      '<span class="price">' + opts.price + '</span></button>';
+  }
+
   function renderShop(force) {
     var sig = signature();
     if (!force && sig === lastSig) return;
     lastSig = sig;
     var top = shopList.scrollTop;
-    var html = '<div class="sec">Cellar</div>';
-    E.PRODUCERS.forEach(function (p) {
-      var q = E.quoteProducer(state, p.id, buyMode);
-      var rate = esc(fmtRate(q.each)) + '/s each';
-      if (q.owned) rate += ' · ' + esc(fmtRate(q.total)) + '/s';
-      var qtyLabel = buyMode === 10 ? '×10' : '';
-      html += '<button type="button" class="item' + (q.afford ? ' can' : '') + '" data-kind="prod" data-buy="' + p.id + '">' +
-        '<span class="ico" aria-hidden="true">' + p.icon + '</span>' +
-        '<span class="meta"><span class="name">' + esc(p.name) +
-        (q.owned ? '<span class="own">×' + q.owned + '</span>' : '') +
-        '</span><span class="desc">' + esc(p.desc) + '</span>' +
-        '<span class="rate">' + rate + '</span></span>' +
-        '<span class="price">' + esc(fmt(q.cost)) + (qtyLabel ? '<small>' + qtyLabel + '</small>' : '') + '</span></button>';
-    });
-    html += '<div class="sec">Upgrades</div>';
-    var pending = [];
-    var ownedUps = [];
-    E.UPGRADES.forEach(function (u) {
-      (state.upgrades[u.id] ? ownedUps : pending).push(u);
-    });
-    pending.concat(ownedUps).forEach(function (u) {
-      var have = !!state.upgrades[u.id];
-      var can = !have && state.schooners + 1e-4 >= u.cost;
-      html += '<button type="button" class="item' + (have ? ' owned' : can ? ' can' : '') + '" data-kind="up" data-buy="' + u.id + '"' + (have ? ' disabled' : '') + '>' +
-        '<span class="ico" aria-hidden="true">' + u.icon + '</span>' +
-        '<span class="meta"><span class="name">' + esc(u.name) + '</span>' +
-        '<span class="desc">' + esc(u.desc) + '</span></span>' +
-        '<span class="price">' + (have ? 'Owned' : esc(fmt(u.cost))) + '</span></button>';
-    });
+    var html = '';
+    var blurbs = {
+      cellar: 'Another of the same cellar item costs about 15% more.',
+      upgrades: 'One-time pours, then Gold Tap and Diamond Schooner with no level cap.',
+      venues: 'Unlock a room. The one you pick changes the bar and pays a bonus.',
+      skins: 'Cosmetic glasses. Your pour stays the same.',
+      more: 'Last Call, the daily, badges, and a card to share.'
+    };
+    setText($('tabBlurb'), blurbs[shopTab] || '');
+    $('qtyRow').hidden = shopTab !== 'cellar';
+    if (shopTab === 'cellar') {
+      E.PRODUCERS.forEach(function (p) {
+        var q = E.quoteProducer(state, p.id, buyMode);
+        var rate = esc(fmtRate(q.each)) + '/s each';
+        if (q.owned) rate += ' · ' + esc(fmtRate(q.total)) + '/s';
+        var qtyLabel = buyMode === 10 ? '<small>×10</small>' : '';
+        html += itemHtml({ kind: 'prod', id: p.id, icon: p.icon, name: p.name, own: q.owned ? '×' + q.owned : '', desc: p.desc, rate: rate, price: esc(fmt(q.cost)) + qtyLabel, cls: q.afford ? ' can' : '' });
+      });
+    } else if (shopTab === 'upgrades') {
+      var pending = [];
+      var ownedUps = [];
+      E.UPGRADES.forEach(function (u) { (state.upgrades[u.id] ? ownedUps : pending).push(u); });
+      pending.concat(ownedUps).forEach(function (u) {
+        var have = !!state.upgrades[u.id];
+        var can = !have && state.schooners + 1e-4 >= u.cost;
+        html += itemHtml({ kind: 'up', id: u.id, icon: u.icon, name: u.name, desc: u.desc, price: have ? 'Owned' : esc(fmt(u.cost)), cls: have ? ' owned' : can ? ' can' : '', disabled: have });
+      });
+      html += '<div class="sec">Beyond max</div>';
+      E.LEVELS.forEach(function (lv) {
+        var owned = state.levels[lv.id] || 0;
+        var cost = E.levelCost(lv.id, owned);
+        var can = state.schooners + 1e-4 >= cost;
+        html += itemHtml({ kind: 'level', id: lv.id, icon: lv.icon, name: lv.name, own: 'Lv ' + owned, desc: lv.desc, price: esc(fmt(cost)), cls: can ? ' can' : '' });
+      });
+    } else if (shopTab === 'venues') {
+      E.VENUES.forEach(function (v) {
+        var owned = !!state.venues[v.id];
+        var on = state.venue === v.id;
+        var can = !owned && state.schooners + 1e-4 >= v.cost;
+        html += itemHtml({ kind: 'venue', id: v.id, icon: v.icon, name: v.name, own: on ? 'Here' : '', desc: v.desc, price: owned ? (on ? 'On' : 'Use') : (v.cost ? esc(fmt(v.cost)) : 'Free'), cls: on ? ' owned' : can ? ' can' : '' });
+      });
+    } else if (shopTab === 'skins') {
+      E.SKINS.forEach(function (skin) {
+        var owned = !!state.skins[skin.id];
+        var on = state.skin === skin.id;
+        var can = !owned && state.schooners + 1e-4 >= skin.cost;
+        html += itemHtml({ kind: 'skin', id: skin.id, icon: skin.icon, name: skin.name, own: on ? 'On' : '', desc: skin.desc, price: owned ? (on ? 'On' : 'Wear') : esc(fmt(skin.cost)), cls: on ? ' owned' : can ? ' can' : '' });
+      });
+    } else {
+      var gain = E.tokensFromRun(state.run);
+      var nextMult = (1 + (state.tokens + gain) * 0.05);
+      html += itemHtml({ kind: 'prestige', id: 'last', icon: '🎟️', name: 'Last Call', desc: gain ? ('Reset this run for ' + gain + ' Hangover Tokens. Permanent income becomes ×' + fmtMult(nextMult) + '.') : 'Pour 1,000,000 schooners this run to earn Hangover Tokens.', price: gain ? '+' + gain : '—', cls: gain ? ' can' : '' });
+      var ch = E.ensureDaily(state);
+      var daily = state.daily;
+      var left = '';
+      if (ch.limit && daily.started && !daily.done) {
+        var remain = Math.max(0, Math.ceil((daily.started + ch.limit * 1000 - Date.now()) / 1000));
+        left = ' · ' + remain + 's left';
+      }
+      var price = daily.claimed ? 'Done' : daily.done ? 'Claim' : (ch.limit && !daily.started ? 'Start' : esc(fmt(daily.progress)) + '/' + esc(fmt(ch.goal)));
+      html += itemHtml({ kind: 'daily', id: ch.id, icon: '📅', name: ch.name, desc: ch.desc + left + ' Reward ' + fmt(ch.reward) + '.', price: price, cls: daily.done && !daily.claimed ? ' can' : '' });
+      html += itemHtml({ kind: 'share', id: 'card', icon: '📤', name: 'Share my score', desc: 'A card with your pours, tokens, and venue.', price: 'Share', cls: ' can' });
+      html += '<div class="sec">Badges</div>';
+      E.ACHIEVEMENTS.forEach(function (a) {
+        var have = !!state.achievements[a.id];
+        html += itemHtml({ kind: 'badge', id: a.id, icon: a.icon, name: a.name, desc: a.desc, price: have ? 'Got' : '—', cls: have ? ' owned' : '', disabled: true });
+      });
+    }
     shopList.innerHTML = html;
     shopList.scrollTop = top;
   }
 
   function renderHud() {
+    var now = Date.now();
     setText(countEl, fmt(state.schooners));
     setText(spsEl, fmtSps(E.passivePerSecond(state)));
-    setText(tpcEl, fmtExact(E.tapValue(state)));
+    setText(tpcEl, fmtExact(E.tapValue(state, combo)));
     var n = E.affordableCount(state);
     badge.hidden = n < 1;
     if (n > 0) setText(badge, String(n));
@@ -774,9 +886,29 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     hint.hidden = state.taps > 0;
     var mult = E.globalMult(state);
     multNote.hidden = mult <= 1;
-    setText(multNote, mult > 1 ? ('All income ×' + mult) : '');
+    setText(multNote, mult > 1 ? ('All income ×' + fmtMult(mult)) : '');
     setText(lifetimeEl, fmt(state.total) + ' poured · ' + fmt(state.taps) + ' taps');
-    var now = Date.now();
+    var hour = E.happyHourHour(new Date(now));
+    var hh = $('hhChip');
+    if (E.inHappyHour(new Date(now))) {
+      setText(hh, 'Happy Hour 2×');
+      hh.className = 'chip hot';
+    } else {
+      var label = hour % 12 || 12;
+      setText(hh, 'Happy Hour ' + label + (hour < 12 ? 'am' : 'pm'));
+      hh.className = 'chip';
+    }
+    var comboChip = $('comboChip');
+    var cMult = E.comboMultiplier(combo);
+    comboChip.hidden = combo < 2;
+    if (combo >= 2) setText(comboChip, 'Combo ×' + fmtMult(cMult));
+    var frenzy = $('frenzyChip');
+    var left = Math.ceil(((state.frenzyUntil || 0) - now) / 1000);
+    frenzy.hidden = left <= 0;
+    if (left > 0) setText(frenzy, 'Frenzy 7× · ' + left + 's');
+    var tokenChip = $('tokenChip');
+    tokenChip.hidden = !(state.tokens > 0);
+    if (state.tokens > 0) setText(tokenChip, '🎟 ' + fmt(state.tokens));
     if (now - lastLive > 5000) {
       lastLive = now;
       setText(live, fmt(state.schooners) + ' schooners, ' + fmtSps(E.passivePerSecond(state)) + ' per second');
@@ -844,9 +976,75 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     }
   }
 
+  function toast(text) {
+    toastQueue.push(text);
+    pumpToast();
+  }
+
+  function pumpToast() {
+    var box = $('toast');
+    if (toastOn || !toastQueue.length) return;
+    toastOn = true;
+    box.hidden = false;
+    box.textContent = toastQueue.shift();
+    setTimeout(function () {
+      box.hidden = true;
+      toastOn = false;
+      pumpToast();
+    }, 2200);
+  }
+
+  function noteUnlocks(list) {
+    for (var i = 0; i < list.length; i++) {
+      var a = E.achievementById(list[i]);
+      if (a) toast(a.icon + ' ' + a.name);
+    }
+  }
+
+  function applyLook() {
+    var venue = state.venue && state.venue !== 'pub' ? state.venue : '';
+    if (venue) document.querySelector('.app').setAttribute('data-venue', venue);
+    else document.querySelector('.app').removeAttribute('data-venue');
+    pourBtn.setAttribute('data-skin', state.skin || 'schooner');
+    var themes = { rsl: '#102218', garden: '#17240f', oktober: '#2a140c', moon: '#0c1224' };
+    var bg = themes[state.venue] || '#1A0F24';
+    document.body.style.background = bg;
+    document.documentElement.style.background = bg;
+  }
+
+  function showGolden() {
+    var btn = $('golden');
+    btn.hidden = false;
+    btn.style.left = (6 + Math.random() * 28) + '%';
+    btn.style.top = (8 + Math.random() * 55) + '%';
+    goldenHideAt = Date.now() + 9000;
+  }
+
+  function catchGolden() {
+    $('golden').hidden = true;
+    nextGolden = Date.now() + 45000 + Math.random() * 50000;
+    state.frenzyUntil = Date.now() + E.FRENZY_MS;
+    state.goldens += 1;
+    E.noteDaily(state, 'golden', 1, Date.now());
+    noteUnlocks(E.syncAchievements(state, { hour: new Date().getHours() }));
+    toast('Golden schooner · 7× for 30s');
+    save();
+    renderHud();
+  }
+
   function doPour(clientX) {
     account();
-    var gain = E.tap(state);
+    var now = Date.now();
+    if (now - lastTapAt <= 850) combo += 1;
+    else combo = 1;
+    lastTapAt = now;
+    if (combo > (state.bestCombo || 0)) state.bestCombo = combo;
+    if (E.inHappyHour(new Date(now))) state.tappedHappy = true;
+    var gain = E.tap(state, combo);
+    E.noteDaily(state, 'tapEarn', gain, now);
+    E.noteDaily(state, 'taps', 1, now);
+    E.noteDaily(state, 'earn', gain, now);
+    E.noteDaily(state, 'combo', combo, now);
     svg.classList.remove('is-pouring');
     void svg.offsetWidth;
     svg.classList.add('is-pouring');
@@ -854,6 +1052,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     popCount();
     if (navigator.vibrate) navigator.vibrate(12);
     blip();
+    noteUnlocks(E.syncAchievements(state, { hour: new Date(now).getHours() }));
     saveSoon();
     renderHud();
     maybeRenderShop();
@@ -881,9 +1080,9 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     modalMode = mode;
     modalTitle.textContent = title;
     modalBody.textContent = body;
-    var danger = mode === 'reset';
+    var danger = mode === 'reset' || mode === 'prestige';
     modalCancel.hidden = !danger;
-    modalOk.textContent = danger ? 'Reset' : 'Cheers';
+    modalOk.textContent = mode === 'reset' ? 'Reset' : mode === 'prestige' ? 'Last Call' : 'Cheers';
     modalOk.className = danger ? 'danger' : 'primary';
     modal.hidden = false;
     (danger ? modalCancel : modalOk).focus();
@@ -894,6 +1093,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     modal.hidden = true;
     modalMode = null;
     if (mode === 'reset' && confirm) doReset();
+    else if (mode === 'prestige' && confirm) doPrestige();
     else if (!sheet.hidden) $('closeShop').focus();
   }
 
@@ -911,22 +1111,108 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     var sound = state.sound;
     state = E.freshState(Date.now());
     state.sound = sound;
+    combo = 0;
     lastSig = '';
     save();
     closeSheet();
+    applyLook();
     updateSound();
     renderHud();
+  }
+
+  function doPrestige() {
+    var result = E.prestige(state);
+    if (!result.ok) return;
+    combo = 0;
+    lastSig = '';
+    toast('Last Call · +' + result.gain + ' tokens');
+    noteUnlocks(E.syncAchievements(state, {}));
+    save();
+    renderHud();
+    renderShop(true);
+  }
+
+  function shareCard() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 720;
+    canvas.height = 960;
+    var g = canvas.getContext('2d');
+    g.fillStyle = '#1A0F24';
+    g.fillRect(0, 0, 720, 960);
+    g.fillStyle = '#F5A623';
+    g.fillRect(0, 0, 720, 16);
+    g.font = '800 54px -apple-system, sans-serif';
+    g.fillStyle = '#FFF8E7';
+    g.fillText('Tap Drink 2', 48, 140);
+    g.font = '800 92px -apple-system, sans-serif';
+    g.fillText(fmt(state.schooners), 48, 280);
+    g.font = '700 28px -apple-system, sans-serif';
+    g.fillStyle = '#F5A623';
+    g.fillText('SCHOONERS', 48, 324);
+    g.fillStyle = '#FFF8E7';
+    g.font = '600 32px -apple-system, sans-serif';
+    var lines = [
+      fmtSps(E.passivePerSecond(state)) + ' per second',
+      fmt(state.total) + ' poured lifetime',
+      fmt(state.taps) + ' taps',
+      (state.tokens || 0) + ' hangover tokens',
+      'Venue · ' + ((E.VENUES.filter(function (v) { return v.id === state.venue; })[0] || {}).name || 'The Local')
+    ];
+    lines.forEach(function (line, i) { g.fillText(line, 48, 430 + i * 56); });
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var file = new File([blob], 'tap-drink-2.png', { type: 'image/png' });
+      var share = { files: [file], title: 'Tap Drink 2', text: fmt(state.schooners) + ' schooners' };
+      if (navigator.canShare && navigator.canShare(share)) {
+        navigator.share(share).catch(function () {});
+      } else {
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'tap-drink-2.png';
+        link.click();
+      }
+    });
   }
 
   function onBuy(btn) {
     account();
     var id = btn.getAttribute('data-buy');
-    var result = btn.getAttribute('data-kind') === 'up'
-      ? E.tryBuyUpgrade(state, id)
+    var kind = btn.getAttribute('data-kind');
+    var now = Date.now();
+    if (kind === 'badge') return;
+    if (kind === 'share') { shareCard(); return; }
+    if (kind === 'prestige') {
+      var gain = E.tokensFromRun(state.run);
+      if (gain < 1) { shake(btn); return; }
+      openModal('prestige', 'Last Call?', 'This run resets. You keep ' + gain + ' new Hangover Tokens, your badges, venues, and skins. Tokens permanently boost income.');
+      return;
+    }
+    if (kind === 'daily') {
+      var ch = E.ensureDaily(state);
+      if (state.daily.claimed) return;
+      if (state.daily.done) {
+        var claimed = E.claimDaily(state, now);
+        if (claimed.ok) toast('Daily reward · +' + fmt(claimed.reward));
+      } else if (ch.limit && !state.daily.started) {
+        E.startDaily(state, now);
+      } else return;
+      noteUnlocks(E.syncAchievements(state, { hour: new Date(now).getHours() }));
+      save();
+      renderHud();
+      renderShop(true);
+      return;
+    }
+    var result = kind === 'up' ? E.tryBuyUpgrade(state, id)
+      : kind === 'level' ? E.tryBuyLevel(state, id)
+      : kind === 'venue' ? E.tryBuyVenue(state, id)
+      : kind === 'skin' ? E.tryBuySkin(state, id)
       : E.tryBuyProducer(state, id, buyMode);
     if (!result.ok) { shake(btn); return; }
+    if (kind === 'prod') E.noteDaily(state, 'buys', result.qty || 1, now);
+    if (kind === 'venue' || kind === 'skin') applyLook();
     popCount();
     blip();
+    noteUnlocks(E.syncAchievements(state, { hour: new Date(now).getHours() }));
     save();
     renderHud();
     renderShop(true);
@@ -954,6 +1240,17 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     var btn = e.target.closest('.item');
     if (!btn || btn.disabled) return;
     onBuy(btn);
+  });
+  document.querySelectorAll('[data-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      shopTab = btn.getAttribute('data-tab');
+      document.querySelectorAll('[data-tab]').forEach(function (b) { b.classList.toggle('on', b === btn); });
+      renderShop(true);
+    });
+  });
+  $('golden').addEventListener('click', function (e) {
+    e.stopPropagation();
+    catchGolden();
   });
   document.querySelectorAll('[data-qty]').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -995,17 +1292,32 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   }
 
   state = E.sanitize(readRaw(), Date.now());
+  E.ensureDaily(state);
+  applyLook();
+  noteUnlocks(E.syncAchievements(state, {}));
   account();
   updateSound();
   renderHud();
   save();
 
   function frame() {
-    account();
+    var now = Date.now();
+    var away = account();
+    if (away.gain > 0) E.noteDaily(state, 'earn', away.gain, now);
+    if (combo > 0 && now - lastTapAt > 800 && now - comboDecayAt > 160) {
+      combo = Math.max(0, combo - 1);
+      comboDecayAt = now;
+    }
+    var golden = $('golden');
+    if (golden.hidden && now >= nextGolden && (state.frenzyUntil || 0) < now) showGolden();
+    if (!golden.hidden && goldenHideAt && now > goldenHideAt) {
+      golden.hidden = true;
+      nextGolden = now + 35000 + Math.random() * 40000;
+    }
     renderHud();
     maybeRenderShop();
     maybeShowAway();
-    if (Date.now() - lastSave > 2000) save();
+    if (now - lastSave > 2000) save();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
