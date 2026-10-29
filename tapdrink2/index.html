@@ -73,19 +73,19 @@ button:focus-visible { outline: 2px solid var(--beer); outline-offset: 2px; }
   margin: 0;
   font-size: var(--size);
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: .04em;
   line-height: 1;
   color: var(--foam);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  animation: wallpaper-rise var(--dur) linear var(--delay) infinite;
+  animation: wallpaper-rise var(--dur, 36s) linear var(--delay, 0s) infinite;
 }
 @keyframes wallpaper-rise {
-  0% { transform: translate3d(0, 16px, 0); opacity: 0; }
-  12% { opacity: var(--fade); }
-  78% { opacity: var(--fade); }
-  100% { transform: translate3d(0, calc(-110vh - 120%), 0); opacity: 0; }
+  0% { transform: translate3d(0, 12px, 0); opacity: 0; }
+  9% { opacity: var(--fade); }
+  88% { opacity: var(--fade); }
+  100% { transform: translate3d(0, calc(-1 * var(--travel, 120vh)), 0); opacity: 0; }
 }
 header, footer { position: relative; z-index: 1; }
 header { padding: calc(env(safe-area-inset-top) + 8px) 16px 0; }
@@ -567,32 +567,65 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
       'ONE MORE TAP?',
       'POUR DECISIONS',
       'TAPS ARE OPEN 🍺',
-      'TAP DRINK AND FUCK?'
+      'TAP DRINK AND FUCK?',
+      'JUST ONE MORE TAP'
     ];
     var order = phrases.slice();
     var n;
-    for (n = 0; n < 3; n++) order.push(phrases[Math.floor(Math.random() * phrases.length)]);
     for (n = order.length - 1; n > 0; n--) {
       var swap = Math.floor(Math.random() * (n + 1));
       var tmp = order[n];
       order[n] = order[swap];
       order[swap] = tmp;
     }
-    order.forEach(function (text) {
-      var short = text.length < 6;
-      var size = short ? 28 + Math.random() * 14 : 13 + Math.random() * 9;
-      var dur = 18 + Math.random() * 16;
+    var dur = 36;
+    var els = order.map(function (text) {
       var el = document.createElement('span');
       el.className = 'wallpaper-word';
       el.textContent = text;
-      el.style.setProperty('--x', (short ? 8 + Math.random() * 62 : text.length > 16 ? 2 + Math.random() * 10 : 3 + Math.random() * 16).toFixed(1) + '%');
-      el.style.setProperty('--size', size.toFixed(1) + 'px');
-      el.style.setProperty('--fade', (0.08 + Math.random() * 0.08).toFixed(3));
-      el.style.setProperty('--dur', dur.toFixed(1) + 's');
-      el.style.setProperty('--delay', (-Math.random() * dur).toFixed(1) + 's');
-      el.style.setProperty('--rest', (6 + Math.random() * 80).toFixed(1) + '%');
-      if (short) el.style.letterSpacing = '0';
+      el.dataset.rand = String(Math.random());
+      el.dataset.scale = String(text.length < 6 ? 1 : 0.88 + Math.random() * 0.12);
+      el.dataset.fade = (0.1 + Math.random() * 0.05).toFixed(3);
+      if (text.length < 6) el.style.letterSpacing = '0';
       host.appendChild(el);
+      return el;
+    });
+
+    function layout() {
+      var width = host.clientWidth || window.innerWidth || 320;
+      var height = host.clientHeight || window.innerHeight || 640;
+      var count = els.length;
+      var pad = 8;
+      var travel = height + 64;
+      var slot = Math.min(travel / count, Math.max(1, (height - pad * 2) / count));
+      var maxFont = Math.max(11, Math.min(18, slot * 0.52));
+      host.style.setProperty('--travel', travel.toFixed(1) + 'px');
+      els.forEach(function (el, i) {
+        var font = maxFont * (+el.dataset.scale || 1);
+        if (el.textContent.length < 6) font = Math.min(slot * 0.62, maxFont * 1.45);
+        el.style.fontSize = font.toFixed(1) + 'px';
+        var guard = 0;
+        while (el.scrollWidth > width - pad * 2 && font > 10 && guard < 24) {
+          font -= 0.5;
+          el.style.fontSize = font.toFixed(1) + 'px';
+          guard++;
+        }
+        var room = Math.max(0, width - el.scrollWidth - pad * 2);
+        var left = pad + (+el.dataset.rand || 0) * room;
+        el.style.setProperty('--x', left.toFixed(1) + 'px');
+        el.style.setProperty('--size', font.toFixed(1) + 'px');
+        el.style.setProperty('--fade', el.dataset.fade);
+        el.style.setProperty('--dur', dur + 's');
+        el.style.setProperty('--delay', (-(i / count) * dur).toFixed(3) + 's');
+        el.style.setProperty('--rest', (pad + i * slot).toFixed(1) + 'px');
+      });
+    }
+
+    layout();
+    var resizeTimer = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(layout, 150);
     });
   })();
 

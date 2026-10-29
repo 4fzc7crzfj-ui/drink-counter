@@ -1,7 +1,7 @@
 /* Tap Drink 2 only. Scope is this folder.
    Never delete caches that do not start with "tapdrink2-".
    The root Tap Drink app keeps its own cache (drinks-v*) and this file must not touch it. */
-var CACHE = 'tapdrink2-v3';
+var CACHE = 'tapdrink2-v4';
 var FILES = [
   './',
   './index.html',
