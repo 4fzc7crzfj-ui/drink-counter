@@ -238,13 +238,19 @@
     return m;
   }
 
+  function passiveVenueMult(state) {
+    var v = venueById(state.venue);
+    if (v && v.channel === 'passive') return v.amount;
+    return 1;
+  }
+
   function passivePerSecond(state, opts) {
     var s = 0;
     for (var i = 0; i < PRODUCERS.length; i++) {
       var p = PRODUCERS[i];
       s += (state.producers[p.id] || 0) * p.rate;
     }
-    return s * globalMult(state, opts) * (venueFactor(state, 'passive') === 1 || (venueById(state.venue) || {}).channel === 'all' ? 1 : venueFactor(state, 'passive'));
+    return s * globalMult(state, opts) * passiveVenueMult(state);
   }
 
   function comboMultiplier(combo) {
@@ -379,13 +385,13 @@
     var owned = state.producers[id] || 0;
     var qty = mode === 10 ? 10 : 1;
     var cost = bulkCost(p.base, owned, qty);
-    var live = globalMult(state) * ((venueById(state.venue) || {}).channel === 'passive' ? venueFactor(state, 'passive') : 1);
+    var each = p.rate * globalMult(state) * passiveVenueMult(state);
     return {
       qty: qty,
       cost: cost,
       owned: owned,
-      each: p.rate,
-      total: p.rate * owned * live,
+      each: each,
+      total: each * owned,
       afford: canAfford(state.schooners, cost)
     };
   }

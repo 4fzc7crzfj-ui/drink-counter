@@ -193,6 +193,7 @@ h1 span { color: var(--beer); }
   padding: 10px 12px; text-align: center; font-weight: 800; pointer-events: none;
   box-shadow: inset 0 0 0 1px rgba(245,166,35,.45), 0 10px 24px rgba(0,0,0,.4);
 }
+.shop-rates { margin: 0 16px 4px; font-weight: 800; color: var(--beer); font-variant-numeric: tabular-nums; font-size: 14px; }
 .tabs { display: flex; gap: 4px; padding: 0 10px 6px; overflow-x: auto; }
 .tabs button {
   flex: 1 1 auto; min-height: 34px; padding: 0 6px; border: 0; border-radius: 999px;
@@ -721,6 +722,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
         <button type="button" data-tab="skins" role="tab">Looks</button>
         <button type="button" data-tab="more" role="tab">More</button>
       </div>
+      <p class="shop-rates" id="shopRates"></p>
       <p class="blurb" id="tabBlurb">Another of the same cellar item costs about 15% more.</p>
       <div class="qty" id="qtyRow" role="group" aria-label="How many to buy">
         <button type="button" data-qty="1" class="on">Buy 1</button>
@@ -1068,8 +1070,12 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   function renderHud() {
     var now = Date.now();
     setText(countEl, fmt(state.schooners));
-    setText(spsEl, fmtSps(E.passivePerSecond(state)));
-    setText(tpcEl, fmtExact(E.tapValue(state, combo)));
+    var spsNow = E.passivePerSecond(state);
+    var tapNow = E.tapValue(state, combo);
+    setText(spsEl, fmtSps(spsNow));
+    setText(tpcEl, fmtExact(tapNow));
+    var shopRates = $('shopRates');
+    if (shopRates) setText(shopRates, fmtSps(spsNow) + ' / sec · ' + fmtExact(tapNow) + ' / tap');
     var n = E.affordableCount(state);
     badge.hidden = n < 1;
     if (n > 0) setText(badge, String(n));
