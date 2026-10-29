@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tap Drink 2">
+<meta name="theme-color" content="#1A0F24">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Tap a schooner. Pour a cellar. Tap Drink 2 is an idle game that stays on your phone.">
+<title>Tap Drink 2</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  --bg: #1A0F24;
+  --card: #261433;
+  --beer: #F5A623;
+  --beer-deep: #C47E14;
+  --foam: #FFF8E7;
+  --muted: rgba(255,248,231,.62);
+  --faint: rgba(255,248,231,.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--foam);
+  font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 2px solid var(--beer); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.app {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(245,166,35,.16), transparent 52%),
+    var(--bg);
+  overflow: hidden;
+}
+header { padding: calc(env(safe-area-inset-top) + 8px) 16px 0; }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.03em; }
+h1 span { color: var(--beer); }
+#sound {
+  width: 44px; height: 44px; border: 0; border-radius: 14px;
+  background: var(--card); font-size: 18px; cursor: pointer; flex: none;
+}
+.count {
+  margin-top: 2px;
+  font-size: clamp(40px, 12vw, 58px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: .95;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  margin-top: 2px;
+  color: var(--beer);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.rates {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.rates b { color: var(--foam); font-weight: 750; }
+.dot { margin: 0 6px; opacity: .5; }
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 4px 12px 0;
+}
+.hint {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: .01em;
+}
+#pour {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  height: 54vh;
+  height: min(54dvh, 460px);
+  cursor: pointer;
+  -webkit-touch-callout: none;
+}
+#pour:active { transform: scale(.97); }
+#pour svg { height: 100%; width: auto; display: block; overflow: visible; }
+.stream { opacity: 1; transform-origin: 100px 74px; }
+.foam { transform-origin: 100px 136px; }
+.glass-wrap { transform: translateY(-16px); transform-origin: 100px 240px; }
+.glow { opacity: .2; }
+.is-pouring .stream { animation: stream .48s ease-out; }
+.is-pouring .foam { animation: head .48s ease-out; }
+.is-pouring .glass-wrap { animation: wob .42s ease-out; }
+.is-pouring .glow { animation: glow .48s ease-out; }
+@keyframes stream {
+  0% { transform: scaleY(.35); }
+  35% { transform: scaleY(1.08); }
+  100% { transform: scaleY(1); }
+}
+@keyframes head {
+  0% { transform: translateY(6px) scaleX(.94); }
+  38% { transform: translateY(-9px) scale(1.07, 1.12); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes wob {
+  0% { transform: translateY(-16px) rotate(0); }
+  30% { transform: translateY(-16px) rotate(-1.6deg) scale(.985); }
+  62% { transform: translateY(-16px) rotate(1.1deg); }
+  100% { transform: translateY(-16px) scale(1); }
+}
+@keyframes glow {
+  35% { opacity: .5; }
+}
+#floats { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.floater {
+  position: absolute;
+  top: 38%;
+  font-weight: 800;
+  font-size: 34px;
+  color: var(--beer);
+  text-shadow: 0 2px 0 #1A0F24, 0 0 16px rgba(255,248,231,.45);
+  animation: up .9s ease-out forwards;
+  white-space: nowrap;
+}
+@keyframes up {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(.8); }
+  16% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  100% { opacity: 0; transform: translate(-50%, -96px) scale(1); }
+}
+.pop { animation: pop .18s ease-out; }
+@keyframes pop {
+  40% { transform: scale(1.06); }
+}
+footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
+#shopBtn {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--beer);
+  color: #1A0F24;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 28px rgba(245,166,35,.22);
+}
+#shopBtn:active { transform: scale(.985); }
+.badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: #1A0F24;
+  color: var(--beer);
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(8, 3, 14, .62);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-layer { z-index: 6; align-items: center; padding: 22px; }
+.sheet {
+  width: 100%;
+  max-height: min(88%, 760px);
+  background: #160c1e;
+  border-radius: 22px 22px 0 0;
+  border-top: 2px solid rgba(245,166,35,.5);
+  box-shadow: 0 -18px 50px rgba(0,0,0,.45);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: slide .26s ease-out;
+}
+@keyframes slide {
+  from { transform: translateY(18px); }
+  to { transform: none; }
+}
+.handle { width: 42px; height: 4px; border-radius: 99px; background: rgba(255,248,231,.28); margin: 8px auto 0; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 0 16px; }
+.sheet-head h2 { margin: 0; font-size: 20px; }
+#closeShop, .icon-btn {
+  width: 44px; height: 44px; border: 0; border-radius: 14px;
+  background: var(--card); color: var(--foam); font-size: 18px; cursor: pointer;
+}
+.blurb { margin: 0 16px 8px; color: var(--faint); font-size: 12px; }
+.qty { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 14px 8px; }
+.qty button {
+  min-height: 40px; border: 0; border-radius: 12px; background: var(--card);
+  color: var(--foam); font-weight: 800; cursor: pointer;
+}
+.qty button.on { background: var(--beer); color: #1A0F24; }
+.sheet-body {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0 14px;
+  min-height: 0;
+  flex: 1;
+}
+.sec {
+  margin: 10px 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--beer);
+}
+.item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  background: var(--card);
+  border: 0;
+  border-radius: 16px;
+  padding: 10px 10px 10px 10px;
+  margin: 0 0 8px;
+  color: var(--foam);
+  cursor: pointer;
+}
+.item:active { transform: scale(.985); }
+.item.can { box-shadow: inset 0 0 0 1.5px rgba(245,166,35,.9); }
+.item.owned { cursor: default; opacity: .58; }
+.item .ico { font-size: 24px; line-height: 1; text-align: center; }
+.item .name { display: block; font-weight: 750; font-size: 15px; }
+.item .own { font-weight: 700; font-size: 12px; color: var(--muted); margin-left: 4px; }
+.item .desc { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.item .rate { display: block; margin-top: 3px; color: var(--beer); font-size: 12px; font-weight: 700; }
+.price {
+  display: block;
+  background: #3a2a48;
+  color: rgba(255,248,231,.55);
+  border-radius: 12px;
+  min-width: 72px;
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.item.can .price { background: var(--beer); color: #1A0F24; }
+.price small { display: block; font-size: 10px; font-weight: 800; letter-spacing: .04em; opacity: .8; }
+.item.owned .price {
+  background: transparent;
+  color: var(--foam);
+  box-shadow: inset 0 0 0 1px rgba(255,248,231,.28);
+}
+.item.shake { animation: shake .28s linear; }
+@keyframes shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.sheet-foot { padding: 6px 14px 12px; }
+.fine { margin: 0 0 6px; font-size: 12px; line-height: 1.35; color: var(--faint); text-align: center; }
+.fine a { color: var(--muted); font-weight: 700; text-decoration: none; }
+.reset {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 4px;
+  border-radius: 14px;
+  border: 0;
+  background: transparent;
+  color: #ffb4bc;
+  box-shadow: inset 0 0 0 1.5px rgba(255,93,108,.5);
+  font-weight: 700;
+  cursor: pointer;
+}
+.dialog {
+  width: min(100%, 360px);
+  background: #261433;
+  border-radius: 22px;
+  padding: 20px 18px 16px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(245,166,35,.35);
+}
+.dialog h3 { margin: 0 0 8px; font-size: 22px; }
+.dialog p { margin: 0; color: rgba(255,248,231,.84); line-height: 1.4; }
+.dialog-actions { display: flex; gap: 10px; margin-top: 16px; }
+.dialog-actions button {
+  flex: 1;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#modalCancel, #modalOk.primary { background: var(--beer); color: #1A0F24; }
+#modalOk.danger {
+  background: transparent;
+  color: #ffb4bc;
+  box-shadow: inset 0 0 0 1.5px rgba(255,93,108,.7);
+}
+.sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stream, .foam, .glass-wrap, .glow, .floater, .pop, .sheet, .item.shake {
+    animation: none !important;
+  }
+  .floater { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-row">
+      <h1>Tap Drink <span>2</span></h1>
+      <button type="button" id="sound" aria-pressed="false" aria-label="Sound off">🔇</button>
+    </div>
+    <div id="count" class="count">0</div>
+    <div class="unit">schooners</div>
+    <div class="rates"><b id="sps">0.0</b> / sec<span class="dot">·</span><b id="tpc">1</b> / tap</div>
+  </header>
+  <div class="stage" id="stage">
+    <p class="hint" id="hint">Tap the schooner</p>
+    <button type="button" id="pour" aria-label="Pour a schooner">
+      <svg class="schooner" viewBox="0 0 200 280" aria-hidden="true">
+        <defs>
+          <linearGradient id="tdBeer" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFC14D"/>
+            <stop offset=".55" stop-color="#F5A623"/>
+            <stop offset="1" stop-color="#C47E14"/>
+          </linearGradient>
+          <linearGradient id="tdWood" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F0B15A"/>
+            <stop offset="1" stop-color="#C47E14"/>
+          </linearGradient>
+          <clipPath id="tdGlass">
+            <path d="M42 120 H158 L146 244 Q142 256 128 256 H72 Q58 256 54 244 Z"/>
+          </clipPath>
+        </defs>
+        <ellipse class="glow" cx="100" cy="258" rx="74" ry="14" fill="#F5A623"/>
+        <rect x="76" y="2" width="48" height="36" rx="12" fill="url(#tdWood)"/>
+        <rect x="76" y="16" width="48" height="8" fill="#F5A623"/>
+        <rect x="26" y="34" width="148" height="30" rx="12" fill="#FFF8E7"/>
+        <path d="M88 64 h24 v14 h-24 z" fill="#FFF8E7"/>
+        <path d="M94 76 h12 l6 8 h-24 z" fill="#FFF8E7"/>
+        <g class="stream">
+          <rect x="92" y="74" width="16" height="70" rx="8" fill="#F5A623"/>
+          <ellipse cx="100" cy="142" rx="11" ry="6" fill="#F5A623"/>
+        </g>
+        <g class="glass-wrap">
+          <path d="M36 114 H164 L150 246 Q146 264 128 264 H72 Q54 264 50 246 Z" fill="#2A1838" stroke="#FFF8E7" stroke-opacity=".4" stroke-width="3"/>
+          <g clip-path="url(#tdGlass)">
+            <rect x="36" y="138" width="128" height="130" fill="url(#tdBeer)"/>
+            <ellipse cx="70" cy="200" rx="14" ry="36" fill="#FFF8E7" opacity=".14"/>
+            <g class="foam">
+              <ellipse cx="100" cy="146" rx="56" ry="16" fill="#FFF8E7"/>
+              <circle cx="62" cy="140" r="11" fill="#FFF8E7"/>
+              <circle cx="96" cy="132" r="13" fill="#FFF8E7"/>
+              <circle cx="128" cy="138" r="12" fill="#FFF8E7"/>
+              <circle cx="150" cy="146" r="8" fill="#FFF8E7"/>
+              <circle cx="78" cy="136" r="4" fill="#F5A623" opacity=".35"/>
+              <circle cx="116" cy="134" r="3" fill="#F5A623" opacity=".28"/>
+            </g>
+            <circle cx="76" cy="230" r="3" fill="#FFF8E7" opacity=".75">
+              <animate attributeName="cy" values="232;156" dur="2.7s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".75;0" dur="2.7s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="118" cy="240" r="2.3" fill="#FFF8E7" opacity=".6">
+              <animate attributeName="cy" values="246;160" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".65;0" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="138" cy="210" r="2" fill="#FFF8E7" opacity=".55">
+              <animate attributeName="cy" values="220;158" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".6;0" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="94" cy="250" r="1.6" fill="#FFF8E7">
+              <animate attributeName="cy" values="252;164" dur="3s" begin="1.3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".5;0" dur="3s" begin="1.3s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+          <path d="M58 132 v92" stroke="#FFF8E7" stroke-opacity=".28" stroke-width="6" stroke-linecap="round"/>
+          <ellipse cx="100" cy="116" rx="64" ry="9" fill="none" stroke="#FFF8E7" stroke-opacity=".5" stroke-width="3"/>
+        </g>
+      </svg>
+    </button>
+    <div id="floats"></div>
+  </div>
+  <footer>
+    <button type="button" id="shopBtn" aria-label="Shop">Shop <span id="badge" class="badge" hidden>0</span></button>
+  </footer>
+  <p id="live" class="sr" aria-live="polite"></p>
+
+  <div id="sheet" class="overlay" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+      <div class="handle"></div>
+      <div class="sheet-head">
+        <h2 id="shopTitle">Shop</h2>
+        <button type="button" id="closeShop" aria-label="Close shop">✕</button>
+      </div>
+      <p class="blurb">Upgrades are one-time. Another of the same cellar item costs about 15% more.</p>
+      <div class="qty" role="group" aria-label="How many to buy">
+        <button type="button" data-qty="1" class="on">Buy 1</button>
+        <button type="button" data-qty="10">Buy 10</button>
+      </div>
+      <div class="sheet-body" id="shopList"></div>
+      <div class="sheet-foot">
+        <p class="fine" id="multNote"></p>
+        <p class="fine" id="lifetime"></p>
+        <p class="fine">Away from the phone, the cellar keeps pouring for up to 8 hours.</p>
+        <button type="button" class="reset" id="resetBtn">Reset progress</button>
+        <p class="fine back"><a href="../">← Tap Drink</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="overlay modal-layer" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle"></h3>
+      <p id="modalBody"></p>
+      <div class="dialog-actions">
+        <button type="button" id="modalCancel" hidden>Keep pouring</button>
+        <button type="button" id="modalOk">Cheers</button>
+      </div>
+    </div>
+  </div>
+</div>
+<noscript><p style="padding:24px;text-align:center">Turn on JavaScript to play. Nothing leaves this phone.</p></noscript>
+<script src="economy.js"></script>
+<script>
+(function () {
+  'use strict';
+  var E = window.TapDrinkEconomy;
+  var KEY = 'tapdrink2';
+  var $ = function (id) { return document.getElementById(id); };
+  var countEl = $('count');
+  var spsEl = $('sps');
+  var tpcEl = $('tpc');
+  var badge = $('badge');
+  var shopBtn = $('shopBtn');
+  var hint = $('hint');
+  var pourBtn = $('pour');
+  var svg = pourBtn.querySelector('svg');
+  var floats = $('floats');
+  var sheet = $('sheet');
+  var shopList = $('shopList');
+  var modal = $('modal');
+  var modalTitle = $('modalTitle');
+  var modalBody = $('modalBody');
+  var modalOk = $('modalOk');
+  var modalCancel = $('modalCancel');
+  var soundBtn = $('sound');
+  var lifetimeEl = $('lifetime');
+  var multNote = $('multNote');
+  var live = $('live');
+
+  var state = E.freshState(Date.now());
+  var buyMode = 1;
+  var lastSig = '';
+  var holding = false;
+  var dirty = false;
+  var pendingAway = null;
+  var modalMode = null;
+  var audio = null;
+  var lastSave = 0;
+  var saveTimer = 0;
+  var lastLive = 0;
+  var floaterCount = 0;
+
+  function readRaw() {
+    try { return JSON.parse(localStorage.getItem(KEY) || 'null'); }
+    catch (err) { return null; }
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (err) {}
+    lastSave = Date.now();
+  }
+
+  function saveSoon() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 350);
+  }
+
+  function group(n) {
+    return String(Math.floor(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function fmt(n) {
+    if (!isFinite(n) || n < 0) n = 0;
+    if (n < 1e6) return group(n);
+    var units = [[1e15, 'Qa'], [1e12, 'T'], [1e9, 'B'], [1e6, 'M']];
+    for (var i = 0; i < units.length; i++) {
+      if (n >= units[i][0]) {
+        var x = n / units[i][0];
+        var digits = x >= 100 ? 0 : x >= 10 ? 1 : 2;
+        return x.toFixed(digits) + units[i][1];
+      }
+    }
+    return group(n);
+  }
+
+  function fmtExact(n) {
+    if (!isFinite(n) || n <= 0) return '0';
+    if (n < 1000) {
+      if (Math.abs(n - Math.round(n)) < 0.001) return group(Math.round(n));
+      return (Math.round(n * 10) / 10).toFixed(1);
+    }
+    return fmt(n);
+  }
+
+  function fmtSps(n) {
+    if (!isFinite(n) || n < 0) n = 0;
+    if (n < 100) return (Math.round(n * 10) / 10).toFixed(1);
+    return fmt(n);
+  }
+
+  function fmtRate(n) {
+    if (!isFinite(n) || n <= 0) return '0';
+    if (n < 10) {
+      var r = Math.round(n * 10) / 10;
+      return Math.abs(r - Math.round(r)) < 1e-9 ? String(Math.round(r)) : r.toFixed(1);
+    }
+    if (n < 100) return String(Math.round(n));
+    return fmt(n);
+  }
+
+  function setText(el, text) {
+    if (el.textContent !== text) el.textContent = text;
+  }
+
+  function account() {
+    var now = Date.now();
+    var elapsed = (now - state.t) / 1000;
+    var away = E.applyElapsed(state, elapsed);
+    state.t = now;
+    if (elapsed >= 45 && away.gain >= 1) {
+      pendingAway = { gain: away.gain, capped: elapsed > E.OFFLINE_CAP_SECONDS };
+    }
+    return away;
+  }
+
+  function signature() {
+    var parts = [String(buyMode)];
+    var i;
+    for (i = 0; i < E.UPGRADES.length; i++) {
+      var u = E.UPGRADES[i];
+      var owned = !!state.upgrades[u.id];
+      parts.push(u.id + (owned ? 'o' : (state.schooners + 1e-4 >= u.cost ? 'y' : 'n')));
+    }
+    for (i = 0; i < E.PRODUCERS.length; i++) {
+      var p = E.PRODUCERS[i];
+      var q = E.quoteProducer(state, p.id, buyMode);
+      parts.push(p.id + ':' + q.owned + ':' + (q.afford ? 'y' : 'n') + ':' + q.cost);
+    }
+    return parts.join('|');
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  function renderShop(force) {
+    var sig = signature();
+    if (!force && sig === lastSig) return;
+    lastSig = sig;
+    var top = shopList.scrollTop;
+    var html = '<div class="sec">Cellar</div>';
+    E.PRODUCERS.forEach(function (p) {
+      var q = E.quoteProducer(state, p.id, buyMode);
+      var rate = esc(fmtRate(q.each)) + '/s each';
+      if (q.owned) rate += ' · ' + esc(fmtRate(q.total)) + '/s';
+      var qtyLabel = buyMode === 10 ? '×10' : '';
+      html += '<button type="button" class="item' + (q.afford ? ' can' : '') + '" data-kind="prod" data-buy="' + p.id + '">' +
+        '<span class="ico" aria-hidden="true">' + p.icon + '</span>' +
+        '<span class="meta"><span class="name">' + esc(p.name) +
+        (q.owned ? '<span class="own">×' + q.owned + '</span>' : '') +
+        '</span><span class="desc">' + esc(p.desc) + '</span>' +
+        '<span class="rate">' + rate + '</span></span>' +
+        '<span class="price">' + esc(fmt(q.cost)) + (qtyLabel ? '<small>' + qtyLabel + '</small>' : '') + '</span></button>';
+    });
+    html += '<div class="sec">Upgrades</div>';
+    var pending = [];
+    var ownedUps = [];
+    E.UPGRADES.forEach(function (u) {
+      (state.upgrades[u.id] ? ownedUps : pending).push(u);
+    });
+    pending.concat(ownedUps).forEach(function (u) {
+      var have = !!state.upgrades[u.id];
+      var can = !have && state.schooners + 1e-4 >= u.cost;
+      html += '<button type="button" class="item' + (have ? ' owned' : can ? ' can' : '') + '" data-kind="up" data-buy="' + u.id + '"' + (have ? ' disabled' : '') + '>' +
+        '<span class="ico" aria-hidden="true">' + u.icon + '</span>' +
+        '<span class="meta"><span class="name">' + esc(u.name) + '</span>' +
+        '<span class="desc">' + esc(u.desc) + '</span></span>' +
+        '<span class="price">' + (have ? 'Owned' : esc(fmt(u.cost))) + '</span></button>';
+    });
+    shopList.innerHTML = html;
+    shopList.scrollTop = top;
+  }
+
+  function renderHud() {
+    setText(countEl, fmt(state.schooners));
+    setText(spsEl, fmtSps(E.passivePerSecond(state)));
+    setText(tpcEl, fmtExact(E.tapValue(state)));
+    var n = E.affordableCount(state);
+    badge.hidden = n < 1;
+    if (n > 0) setText(badge, String(n));
+    shopBtn.setAttribute('aria-label', n > 0 ? ('Shop, ' + n + ' ready') : 'Shop');
+    hint.hidden = state.taps > 0;
+    var mult = E.globalMult(state);
+    multNote.hidden = mult <= 1;
+    setText(multNote, mult > 1 ? ('All income ×' + mult) : '');
+    setText(lifetimeEl, fmt(state.total) + ' poured · ' + fmt(state.taps) + ' taps');
+    var now = Date.now();
+    if (now - lastLive > 5000) {
+      lastLive = now;
+      setText(live, fmt(state.schooners) + ' schooners, ' + fmtSps(E.passivePerSecond(state)) + ' per second');
+    }
+  }
+
+  function maybeRenderShop() {
+    if (sheet.hidden) return;
+    var sig = signature();
+    if (sig === lastSig) return;
+    if (holding) { dirty = true; return; }
+    dirty = false;
+    renderShop(false);
+  }
+
+  function updateSound() {
+    soundBtn.textContent = state.sound ? '🔊' : '🔇';
+    soundBtn.setAttribute('aria-pressed', state.sound ? 'true' : 'false');
+    soundBtn.setAttribute('aria-label', state.sound ? 'Sound on' : 'Sound off');
+  }
+
+  function blip() {
+    if (!state.sound) return;
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audio) audio = new Ctx();
+      if (audio.state === 'suspended') audio.resume();
+      var t = audio.currentTime;
+      var o = audio.createOscillator();
+      var g = audio.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(290, t);
+      o.frequency.exponentialRampToValueAtTime(130, t + 0.1);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.045, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+      o.connect(g);
+      g.connect(audio.destination);
+      o.start(t);
+      o.stop(t + 0.14);
+    } catch (err) {}
+  }
+
+  function popCount() {
+    countEl.classList.remove('pop');
+    void countEl.offsetWidth;
+    countEl.classList.add('pop');
+  }
+
+  function spawnFloater(gain) {
+    var el = document.createElement('span');
+    el.className = 'floater';
+    el.textContent = '+' + fmtExact(gain);
+    el.style.left = (52 + Math.random() * 30) + '%';
+    el.style.top = (26 + Math.random() * 24) + '%';
+    floats.appendChild(el);
+    floaterCount++;
+    var remove = function () { if (el.parentNode) { el.remove(); floaterCount--; } };
+    el.addEventListener('animationend', remove);
+    setTimeout(remove, 1000);
+    if (floaterCount > 14) {
+      var first = floats.firstChild;
+      if (first) { first.remove(); floaterCount--; }
+    }
+  }
+
+  function doPour(clientX) {
+    account();
+    var gain = E.tap(state);
+    svg.classList.remove('is-pouring');
+    void svg.offsetWidth;
+    svg.classList.add('is-pouring');
+    spawnFloater(gain);
+    popCount();
+    if (navigator.vibrate) navigator.vibrate(12);
+    blip();
+    saveSoon();
+    renderHud();
+    maybeRenderShop();
+  }
+
+  function shake(btn) {
+    if (!btn) return;
+    btn.classList.remove('shake');
+    void btn.offsetWidth;
+    btn.classList.add('shake');
+  }
+
+  function openSheet() {
+    sheet.hidden = false;
+    renderShop(true);
+    $('closeShop').focus();
+  }
+
+  function closeSheet() {
+    sheet.hidden = true;
+    shopBtn.focus();
+  }
+
+  function openModal(mode, title, body) {
+    modalMode = mode;
+    modalTitle.textContent = title;
+    modalBody.textContent = body;
+    var danger = mode === 'reset';
+    modalCancel.hidden = !danger;
+    modalOk.textContent = danger ? 'Reset' : 'Cheers';
+    modalOk.className = danger ? 'danger' : 'primary';
+    modal.hidden = false;
+    (danger ? modalCancel : modalOk).focus();
+  }
+
+  function dismissModal(confirm) {
+    var mode = modalMode;
+    modal.hidden = true;
+    modalMode = null;
+    if (mode === 'reset' && confirm) doReset();
+    else if (!sheet.hidden) $('closeShop').focus();
+  }
+
+  function maybeShowAway() {
+    if (!pendingAway || !modal.hidden) return;
+    var info = pendingAway;
+    pendingAway = null;
+    var body = 'The taps kept pouring. +' + fmtExact(info.gain) + ' schooners while you were away.';
+    if (info.capped) body += ' The kegs stop counting after 8 hours.';
+    openModal('away', 'Welcome back', body);
+  }
+
+  function doReset() {
+    pendingAway = null;
+    var sound = state.sound;
+    state = E.freshState(Date.now());
+    state.sound = sound;
+    lastSig = '';
+    save();
+    closeSheet();
+    updateSound();
+    renderHud();
+  }
+
+  function onBuy(btn) {
+    account();
+    var id = btn.getAttribute('data-buy');
+    var result = btn.getAttribute('data-kind') === 'up'
+      ? E.tryBuyUpgrade(state, id)
+      : E.tryBuyProducer(state, id, buyMode);
+    if (!result.ok) { shake(btn); return; }
+    popCount();
+    blip();
+    save();
+    renderHud();
+    renderShop(true);
+  }
+
+  pourBtn.addEventListener('pointerdown', function (e) {
+    if (e.button && e.button !== 0) return;
+    e.preventDefault();
+    doPour(e.clientX);
+  }, { passive: false });
+  pourBtn.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      doPour();
+    }
+  });
+
+  shopBtn.addEventListener('click', openSheet);
+  $('closeShop').addEventListener('click', closeSheet);
+  sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+  shopList.addEventListener('pointerdown', function () { holding = true; });
+  window.addEventListener('pointerup', function () { holding = false; });
+  window.addEventListener('pointercancel', function () { holding = false; });
+  shopList.addEventListener('click', function (e) {
+    var btn = e.target.closest('.item');
+    if (!btn || btn.disabled) return;
+    onBuy(btn);
+  });
+  document.querySelectorAll('[data-qty]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      buyMode = Number(btn.getAttribute('data-qty')) === 10 ? 10 : 1;
+      document.querySelectorAll('[data-qty]').forEach(function (b) {
+        b.classList.toggle('on', b === btn);
+      });
+      renderShop(true);
+    });
+  });
+  $('resetBtn').addEventListener('click', function () {
+    openModal('reset', 'Start over?', 'This empties your schooners, sends the staff home, and clears every upgrade on this phone.');
+  });
+  modalCancel.addEventListener('click', function () { dismissModal(false); });
+  modalOk.addEventListener('click', function () { dismissModal(modalMode === 'reset'); });
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal && modalMode !== 'reset') dismissModal(false);
+  });
+  soundBtn.addEventListener('click', function () {
+    state.sound = !state.sound;
+    updateSound();
+    save();
+    blip();
+  });
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (!modal.hidden) { dismissModal(false); return; }
+      if (!sheet.hidden) closeSheet();
+      return;
+    }
+    if ((e.key === ' ' || e.key === 'Enter') && e.target === document.body && sheet.hidden && modal.hidden) {
+      e.preventDefault();
+      doPour();
+    }
+  });
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('animate').forEach(function (node) { node.remove(); });
+  }
+
+  state = E.sanitize(readRaw(), Date.now());
+  account();
+  updateSound();
+  renderHud();
+  save();
+
+  function frame() {
+    account();
+    renderHud();
+    maybeRenderShop();
+    maybeShowAway();
+    if (Date.now() - lastSave > 2000) save();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  window.addEventListener('pagehide', function () { account(); save(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') { account(); save(); }
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

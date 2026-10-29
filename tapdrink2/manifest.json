@@ -1,0 +1,14 @@
+{
+  "name": "Tap Drink 2",
+  "short_name": "Tap Drink 2",
+  "description": "Tap a schooner. Pour a cellar. An idle game that stays on your phone.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1A0F24",
+  "theme_color": "#1A0F24",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
