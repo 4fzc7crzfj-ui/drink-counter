@@ -145,10 +145,17 @@ h1 span { color: var(--beer); }
   background: #261433; color: var(--foam); font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .tabs button.on { background: var(--beer); color: #1A0F24; }
-#pour[data-skin="pint"] svg { transform: scaleX(.84) scaleY(1.06); filter: hue-rotate(-12deg) saturate(1.25); }
-#pour[data-skin="jug"] svg { transform: scaleX(1.12) scaleY(.9); }
-#pour[data-skin="goon"] svg { filter: grayscale(.55) sepia(.35) brightness(1.15); }
-#pour[data-skin="keg"] svg { filter: sepia(.45) saturate(1.7) brightness(1.12); }
+#pour .skin { display: none; }
+#pour:not([data-skin]) .skin-schooner,
+#pour[data-skin="schooner"] .skin-schooner,
+#pour[data-skin="pint"] .skin-pint,
+#pour[data-skin="jug"] .skin-jug,
+#pour[data-skin="goon"] .skin-goon,
+#pour[data-skin="keg"] .skin-keg { display: inline; }
+.skin-pint .stream { transform-origin: 100px 18px; }
+.skin-jug .stream { transform-origin: 96px 78px; }
+.skin-goon .stream { transform-origin: 173px 202px; }
+.skin-keg .stream { transform-origin: 100px 188px; }
 .app[data-venue="rsl"] { --bg: #102218; --beer: #e4c15a; background: radial-gradient(ellipse at 50% 18%, rgba(80,160,90,.28), transparent 55%), var(--bg); }
 .app[data-venue="garden"] { --bg: #17240f; --beer: #d6e36a; background: radial-gradient(ellipse at 50% 18%, rgba(170,190,60,.25), transparent 55%), var(--bg); }
 .app[data-venue="oktober"] { --bg: #2a140c; --beer: #ff8a1a; background: radial-gradient(ellipse at 50% 18%, rgba(255,120,20,.28), transparent 55%), var(--bg); }
@@ -183,7 +190,7 @@ h1 span { color: var(--beer); }
 #pour svg { height: 100%; width: auto; display: block; overflow: visible; }
 .stream { opacity: 1; transform-origin: 100px 74px; }
 .foam { transform-origin: 100px 136px; }
-.glass-wrap { transform: translateY(-16px); transform-origin: 100px 240px; }
+.glass-wrap { transform-origin: 100px 230px; }
 .glow { opacity: .2; }
 .is-pouring .stream { animation: stream .48s ease-out; }
 .is-pouring .foam { animation: head .48s ease-out; }
@@ -200,10 +207,10 @@ h1 span { color: var(--beer); }
   100% { transform: translateY(0) scale(1); }
 }
 @keyframes wob {
-  0% { transform: translateY(-16px) rotate(0); }
-  30% { transform: translateY(-16px) rotate(-1.6deg) scale(.985); }
-  62% { transform: translateY(-16px) rotate(1.1deg); }
-  100% { transform: translateY(-16px) scale(1); }
+  0% { transform: rotate(0); }
+  30% { transform: rotate(-1.8deg) scale(.985); }
+  62% { transform: rotate(1.2deg); }
+  100% { transform: rotate(0) scale(1); }
 }
 @keyframes glow {
   35% { opacity: .5; }
@@ -458,53 +465,169 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
             <stop offset="0" stop-color="#F0B15A"/>
             <stop offset="1" stop-color="#C47E14"/>
           </linearGradient>
+          <linearGradient id="pintBeer" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E39A2E"/>
+            <stop offset="1" stop-color="#8C4E0C"/>
+          </linearGradient>
+          <linearGradient id="foil" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#F7F9FC"/>
+            <stop offset=".22" stop-color="#C5CED8"/>
+            <stop offset=".48" stop-color="#F4F7FA"/>
+            <stop offset=".72" stop-color="#8E98A6"/>
+            <stop offset="1" stop-color="#DEE5ED"/>
+          </linearGradient>
+          <linearGradient id="wine" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#A32038"/>
+            <stop offset="1" stop-color="#4A0614"/>
+          </linearGradient>
+          <linearGradient id="kegGold" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#A87420"/>
+            <stop offset=".35" stop-color="#F6E2A0"/>
+            <stop offset=".7" stop-color="#C9962E"/>
+            <stop offset="1" stop-color="#8A5E14"/>
+          </linearGradient>
           <clipPath id="tdGlass">
             <path d="M42 120 H158 L146 244 Q142 256 128 256 H72 Q58 256 54 244 Z"/>
           </clipPath>
+          <clipPath id="pintClip">
+            <path d="M62 40 H138 L132 248 Q100 260 68 248 Z"/>
+          </clipPath>
+          <clipPath id="jugClip">
+            <path d="M34 108 H150 Q162 108 162 124 V214 Q162 236 140 236 H48 Q28 236 28 214 V124 Q28 108 34 108 Z"/>
+          </clipPath>
+          <clipPath id="goonBag">
+            <path d="M46 74 Q34 74 30 92 L26 156 Q24 206 46 222 Q78 240 108 240 Q150 240 176 220 Q190 204 186 156 L182 92 Q178 74 160 74 Q108 64 46 74 Z"/>
+          </clipPath>
         </defs>
-        <ellipse class="glow" cx="100" cy="258" rx="74" ry="14" fill="#F5A623"/>
-        <rect x="76" y="2" width="48" height="36" rx="12" fill="url(#tdWood)"/>
-        <rect x="76" y="16" width="48" height="8" fill="#F5A623"/>
-        <rect x="26" y="34" width="148" height="30" rx="12" fill="#FFF8E7"/>
-        <path d="M88 64 h24 v14 h-24 z" fill="#FFF8E7"/>
-        <path d="M94 76 h12 l6 8 h-24 z" fill="#FFF8E7"/>
-        <g class="stream">
-          <rect x="92" y="74" width="16" height="70" rx="8" fill="#F5A623"/>
-          <ellipse cx="100" cy="142" rx="11" ry="6" fill="#F5A623"/>
-        </g>
-        <g class="glass-wrap">
-          <path d="M36 114 H164 L150 246 Q146 264 128 264 H72 Q54 264 50 246 Z" fill="#2A1838" stroke="#FFF8E7" stroke-opacity=".4" stroke-width="3"/>
-          <g clip-path="url(#tdGlass)">
-            <rect x="36" y="138" width="128" height="130" fill="url(#tdBeer)"/>
-            <ellipse cx="70" cy="200" rx="14" ry="36" fill="#FFF8E7" opacity=".14"/>
-            <g class="foam">
-              <ellipse cx="100" cy="146" rx="56" ry="16" fill="#FFF8E7"/>
-              <circle cx="62" cy="140" r="11" fill="#FFF8E7"/>
-              <circle cx="96" cy="132" r="13" fill="#FFF8E7"/>
-              <circle cx="128" cy="138" r="12" fill="#FFF8E7"/>
-              <circle cx="150" cy="146" r="8" fill="#FFF8E7"/>
-              <circle cx="78" cy="136" r="4" fill="#F5A623" opacity=".35"/>
-              <circle cx="116" cy="134" r="3" fill="#F5A623" opacity=".28"/>
+        <g class="skin skin-schooner">
+          <g transform="translate(0,-16)">
+            <ellipse class="glow" cx="100" cy="258" rx="74" ry="14" fill="#F5A623"/>
+            <rect x="76" y="2" width="48" height="36" rx="12" fill="url(#tdWood)"/>
+            <rect x="76" y="16" width="48" height="8" fill="#F5A623"/>
+            <rect x="26" y="34" width="148" height="30" rx="12" fill="#FFF8E7"/>
+            <path d="M88 64 h24 v14 h-24 z" fill="#FFF8E7"/>
+            <path d="M94 76 h12 l6 8 h-24 z" fill="#FFF8E7"/>
+            <g class="stream">
+              <rect x="92" y="74" width="16" height="70" rx="8" fill="#F5A623"/>
+              <ellipse cx="100" cy="142" rx="11" ry="6" fill="#F5A623"/>
             </g>
-            <circle cx="76" cy="230" r="3" fill="#FFF8E7" opacity=".75">
-              <animate attributeName="cy" values="232;156" dur="2.7s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values=".75;0" dur="2.7s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="118" cy="240" r="2.3" fill="#FFF8E7" opacity=".6">
-              <animate attributeName="cy" values="246;160" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values=".65;0" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="138" cy="210" r="2" fill="#FFF8E7" opacity=".55">
-              <animate attributeName="cy" values="220;158" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values=".6;0" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="94" cy="250" r="1.6" fill="#FFF8E7">
-              <animate attributeName="cy" values="252;164" dur="3s" begin="1.3s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values=".5;0" dur="3s" begin="1.3s" repeatCount="indefinite"/>
-            </circle>
+            <g class="glass-wrap">
+              <path d="M36 114 H164 L150 246 Q146 264 128 264 H72 Q54 264 50 246 Z" fill="#2A1838" stroke="#FFF8E7" stroke-opacity=".4" stroke-width="3"/>
+              <g clip-path="url(#tdGlass)">
+                <rect x="36" y="138" width="128" height="130" fill="url(#tdBeer)"/>
+                <ellipse cx="70" cy="200" rx="14" ry="36" fill="#FFF8E7" opacity=".14"/>
+                <g class="foam">
+                  <ellipse cx="100" cy="146" rx="56" ry="16" fill="#FFF8E7"/>
+                  <circle cx="62" cy="140" r="11" fill="#FFF8E7"/>
+                  <circle cx="96" cy="132" r="13" fill="#FFF8E7"/>
+                  <circle cx="128" cy="138" r="12" fill="#FFF8E7"/>
+                  <circle cx="150" cy="146" r="8" fill="#FFF8E7"/>
+                  <circle cx="78" cy="136" r="4" fill="#F5A623" opacity=".35"/>
+                  <circle cx="116" cy="134" r="3" fill="#F5A623" opacity=".28"/>
+                </g>
+                <circle cx="76" cy="230" r="3" fill="#FFF8E7" opacity=".75">
+                  <animate attributeName="cy" values="232;156" dur="2.7s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values=".75;0" dur="2.7s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="118" cy="240" r="2.3" fill="#FFF8E7" opacity=".6">
+                  <animate attributeName="cy" values="246;160" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values=".65;0" dur="3.2s" begin=".7s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="138" cy="210" r="2" fill="#FFF8E7" opacity=".55">
+                  <animate attributeName="cy" values="220;158" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values=".6;0" dur="2.3s" begin=".3s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="94" cy="250" r="1.6" fill="#FFF8E7">
+                  <animate attributeName="cy" values="252;164" dur="3s" begin="1.3s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values=".5;0" dur="3s" begin="1.3s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+              <path d="M58 132 v92" stroke="#FFF8E7" stroke-opacity=".28" stroke-width="6" stroke-linecap="round"/>
+              <ellipse cx="100" cy="116" rx="64" ry="9" fill="none" stroke="#FFF8E7" stroke-opacity=".5" stroke-width="3"/>
+            </g>
           </g>
-          <path d="M58 132 v92" stroke="#FFF8E7" stroke-opacity=".28" stroke-width="6" stroke-linecap="round"/>
-          <ellipse cx="100" cy="116" rx="64" ry="9" fill="none" stroke="#FFF8E7" stroke-opacity=".5" stroke-width="3"/>
+        </g>
+        <g class="skin skin-pint">
+          <g class="stream">
+            <rect x="96" y="18" width="8" height="36" rx="4" fill="#E39A2E"/>
+          </g>
+          <g class="glass-wrap">
+            <path d="M58 36 H142 L134 252 Q100 266 66 252 Z" fill="#24160f" stroke="#FFF8E7" stroke-opacity=".55" stroke-width="3"/>
+            <path d="M54 36 H146 L148 48 H52 Z" fill="#FFF8E7" opacity=".85"/>
+            <g clip-path="url(#pintClip)">
+              <rect x="54" y="108" width="96" height="160" fill="url(#pintBeer)"/>
+              <g class="foam">
+                <ellipse cx="100" cy="112" rx="36" ry="12" fill="#FFF8E7"/>
+                <circle cx="78" cy="106" r="8" fill="#FFF8E7"/>
+                <circle cx="108" cy="102" r="9" fill="#FFF8E7"/>
+                <circle cx="128" cy="110" r="7" fill="#FFF8E7"/>
+              </g>
+            </g>
+            <path d="M72 56 v150" stroke="#FFF8E7" stroke-opacity=".22" stroke-width="5" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="skin skin-jug">
+          <g class="stream">
+            <rect x="92" y="78" width="10" height="40" rx="5" fill="#F5A623"/>
+          </g>
+          <g class="glass-wrap">
+            <path d="M154 128 C196 128 196 214 154 214" fill="none" stroke="#FFF8E7" stroke-width="10" stroke-linecap="round"/>
+            <path d="M28 112 H156 Q170 112 170 128 V210 Q170 242 142 242 H46 Q24 242 24 210 V128 Q24 112 28 112 Z" fill="#2A1838" stroke="#FFF8E7" stroke-opacity=".45" stroke-width="3"/>
+            <g clip-path="url(#jugClip)">
+              <rect x="20" y="150" width="160" height="100" fill="url(#tdBeer)"/>
+              <g class="foam">
+                <ellipse cx="96" cy="154" rx="62" ry="16" fill="#FFF8E7"/>
+                <circle cx="62" cy="146" r="12" fill="#FFF8E7"/>
+                <circle cx="98" cy="138" r="14" fill="#FFF8E7"/>
+                <circle cx="136" cy="148" r="11" fill="#FFF8E7"/>
+              </g>
+            </g>
+            <path d="M44 132 v70" stroke="#FFF8E7" stroke-opacity=".2" stroke-width="6" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="skin skin-keg">
+          <g class="glass-wrap">
+            <ellipse cx="100" cy="248" rx="70" ry="12" fill="#F5A623" opacity=".2"/>
+            <ellipse cx="100" cy="64" rx="64" ry="18" fill="#F3D48A"/>
+            <path d="M38 64 L46 214 Q100 234 154 214 L162 64" fill="url(#kegGold)"/>
+            <ellipse cx="100" cy="214" rx="56" ry="16" fill="#C4922A"/>
+            <ellipse cx="100" cy="96" rx="62" ry="12" fill="none" stroke="#7A5818" stroke-width="6"/>
+            <ellipse cx="100" cy="146" rx="60" ry="13" fill="none" stroke="#FFF1C2" stroke-width="5"/>
+            <ellipse cx="100" cy="190" rx="56" ry="12" fill="none" stroke="#7A5818" stroke-width="6"/>
+            <rect x="90" y="156" width="20" height="28" rx="3" fill="#5C3D14"/>
+            <rect x="82" y="178" width="36" height="12" rx="3" fill="#3E2910"/>
+            <g class="stream">
+              <rect x="96" y="188" width="8" height="40" rx="4" fill="#F5A623"/>
+              <ellipse cx="100" cy="232" rx="7" ry="5" fill="#E39A2E"/>
+            </g>
+            <g class="foam">
+              <ellipse cx="70" cy="120" rx="16" ry="28" fill="#FFF6D8" opacity=".28"/>
+            </g>
+          </g>
+        </g>
+        <g class="skin skin-goon">
+          <g class="glass-wrap">
+            <ellipse cx="108" cy="250" rx="78" ry="12" fill="#000" opacity=".28"/>
+            <path d="M46 74 Q34 74 30 92 L26 156 Q24 206 46 222 Q78 240 108 240 Q150 240 176 220 Q190 204 186 156 L182 92 Q178 74 160 74 Q108 64 46 74 Z" fill="url(#foil)" stroke="#66707E" stroke-width="2"/>
+            <g clip-path="url(#goonBag)">
+              <rect x="16" y="168" width="180" height="80" fill="url(#wine)"/>
+              <path d="M30 176 Q80 166 120 180 T180 172" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="2"/>
+            </g>
+            <path d="M52 98 Q84 114 110 92 T168 108" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+            <path d="M42 136 Q90 120 118 146 T176 132" fill="none" stroke="#7E8896" stroke-width="2"/>
+            <path d="M48 118 Q62 160 54 200" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="7" stroke-linecap="round"/>
+            <g class="foam">
+              <ellipse cx="78" cy="108" rx="22" ry="9" fill="#fff" opacity=".5"/>
+            </g>
+            <rect x="150" y="186" width="16" height="14" rx="2" fill="#1A1A1A"/>
+            <rect x="162" y="176" width="26" height="28" rx="5" fill="#D32F2F"/>
+            <rect x="168" y="182" width="14" height="8" rx="2" fill="#7F1212"/>
+            <rect x="178" y="158" width="7" height="26" rx="2" fill="#111"/>
+            <g class="stream">
+              <rect x="170" y="202" width="7" height="32" rx="3" fill="#7A1024"/>
+              <ellipse cx="173" cy="238" rx="6" ry="5" fill="#5C0A18"/>
+            </g>
+          </g>
         </g>
       </svg>
     </button>
