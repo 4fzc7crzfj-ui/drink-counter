@@ -127,12 +127,66 @@ h1 span { color: var(--beer); }
 }
 .chip.hot { background: var(--beer); color: #1A0F24; }
 .golden {
-  position: absolute; z-index: 3; width: 62px; height: 62px; border: 0; border-radius: 50%;
+  position: absolute; z-index: 3; width: auto; height: auto; border: 0; padding: 0;
+  background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center;
+}
+.golden-mark {
+  width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; font-size: 28px;
   background: radial-gradient(circle at 35% 30%, #fff6c8, #f5a623 58%, #a86b10);
-  box-shadow: 0 0 16px rgba(245,166,35,.85); font-size: 28px; cursor: pointer;
+  box-shadow: 0 0 16px rgba(245,166,35,.85);
   animation: floaty 1.3s ease-in-out infinite;
 }
+.golden-name {
+  margin-top: 2px; font-size: 11px; font-weight: 800; color: #F5A623;
+  text-shadow: 0 1px 0 #1A0F24; letter-spacing: .02em;
+}
 @keyframes floaty { 50% { transform: translateY(-6px); } }
+.shower {
+  position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none;
+}
+.shower[hidden] { display: none !important; }
+.shower .jet {
+  position: absolute; top: -8%; width: 16px; height: 78%;
+  left: var(--x); border-radius: 10px; opacity: .8;
+  background: linear-gradient(#fff4b0, #f5a623 40%, #e09a20);
+  transform-origin: top center;
+  animation: jet 0.55s ease-in-out infinite;
+}
+.shower .jet.thin { width: 8px; opacity: .65; }
+.shower .drop {
+  position: absolute; top: -6%; left: var(--x); width: 12px; height: 16px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: #ffd24a; box-shadow: inset -2px -2px 0 #c47e14;
+  animation: rain 1s linear infinite;
+  animation-delay: var(--d);
+}
+.shower .splash {
+  position: absolute; left: 50%; bottom: 22%; width: 18px; height: 10px; margin-left: -9px;
+  border-radius: 50%; background: #ffe27a; opacity: 0;
+  animation: splash .7s ease-out infinite;
+  animation-delay: var(--d);
+}
+.shower .fill {
+  position: absolute; left: 50%; bottom: 16%; width: 150px; margin-left: -75px;
+  height: 120px; border-radius: 0 0 28px 28px; overflow: hidden;
+}
+.shower .fill i {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+  background: linear-gradient(#ffe27a, #f5a623 55%, #c47e14);
+  opacity: .55; border-radius: 0 0 28px 28px;
+  animation: fillup 30s linear forwards;
+}
+@keyframes jet {
+  0% { transform: scaleY(.2); opacity: .2; }
+  40% { transform: scaleY(1); opacity: .9; }
+  100% { transform: scaleY(.85); opacity: .75; }
+}
+@keyframes rain { to { transform: translate3d(0, 105vh, 0); } }
+@keyframes splash {
+  0% { transform: scale(.4); opacity: .9; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes fillup { to { height: 100%; } }
 .toast {
   position: absolute; left: 12px; right: 12px; top: calc(env(safe-area-inset-top) + 10px);
   z-index: 8; background: #261433; color: var(--foam); border-radius: 14px;
@@ -421,7 +475,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   border: 0;
 }
 @media (prefers-reduced-motion: reduce) {
-  .stream, .foam, .glass-wrap, .glow, .floater, .pop, .sheet, .item.shake, .wallpaper-word {
+  .stream, .foam, .glass-wrap, .glow, .floater, .pop, .sheet, .item.shake, .wallpaper-word, .shower .jet, .shower .drop, .shower .splash, .shower .fill i {
     animation: none !important;
   }
   .floater { opacity: 1; }
@@ -632,7 +686,21 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
       </svg>
     </button>
     <div id="floats"></div>
-    <button type="button" id="golden" class="golden" hidden aria-label="Golden schooner">🍺</button>
+    <button type="button" id="golden" class="golden" hidden aria-label="Golden Shower"><span class="golden-mark" aria-hidden="true">🍺</span><span class="golden-name">Golden Shower</span></button>
+    <div id="shower" class="shower" hidden aria-hidden="true">
+      <span class="jet" style="--x:42%"></span>
+      <span class="jet thin" style="--x:58%"></span>
+      <span class="jet thin" style="--x:36%"></span>
+      <span class="drop" style="--x:30%;--d:0s"></span>
+      <span class="drop" style="--x:48%;--d:-.3s"></span>
+      <span class="drop" style="--x:63%;--d:-.55s"></span>
+      <span class="drop" style="--x:40%;--d:-.8s"></span>
+      <span class="drop" style="--x:70%;--d:-.15s"></span>
+      <span class="splash" style="--d:0s"></span>
+      <span class="splash" style="--d:.25s; margin-left:18px"></span>
+      <span class="splash" style="--d:.5s; margin-left:-28px"></span>
+      <span class="fill"><i></i></span>
+    </div>
   </div>
   <footer>
     <button type="button" id="shopBtn" aria-label="Shop">Shop <span id="badge" class="badge" hidden>0</span></button>
@@ -1028,7 +1096,8 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     var frenzy = $('frenzyChip');
     var left = Math.ceil(((state.frenzyUntil || 0) - now) / 1000);
     frenzy.hidden = left <= 0;
-    if (left > 0) setText(frenzy, 'Frenzy 7× · ' + left + 's');
+    if (left > 0) setText(frenzy, 'Golden Shower 7× · ' + left + 's');
+    $('shower').hidden = left <= 0;
     var tokenChip = $('tokenChip');
     tokenChip.hidden = !(state.tokens > 0);
     if (state.tokens > 0) setText(tokenChip, '🎟 ' + fmt(state.tokens));
@@ -1150,7 +1219,9 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     state.goldens += 1;
     E.noteDaily(state, 'golden', 1, Date.now());
     noteUnlocks(E.syncAchievements(state, { hour: new Date().getHours() }));
-    toast('Golden schooner · 7× for 30s');
+    toast('Golden Shower · 7× for 30s');
+    var fill = document.querySelector('.shower .fill i');
+    if (fill) { fill.style.animation = 'none'; void fill.offsetWidth; fill.style.animation = ''; }
     save();
     renderHud();
   }

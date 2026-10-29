@@ -59,7 +59,7 @@
     { id: 'pour', name: 'Pour Decisions', desc: 'Pour 1,000,000 schooners.', icon: '🏆' },
     { id: 'night', name: '3am Tap', desc: 'Tap between 3 and 4 in the morning.', icon: '🌙' },
     { id: 'last', name: 'Last Call', desc: 'Prestige once.', icon: '🎟️' },
-    { id: 'gold', name: 'Lucky Glass', desc: 'Catch a golden schooner.', icon: '✨' },
+    { id: 'gold', name: 'Golden Shower', desc: 'Catch a Golden Shower.', icon: '✨' },
     { id: 'club', name: 'Member', desc: 'Unlock a venue.', icon: '🏠' },
     { id: 'streak', name: 'On a Roll', desc: 'Reach a 20-tap combo.', icon: '🔥' },
     { id: 'hour', name: 'Right on Time', desc: 'Tap during Happy Hour.', icon: '⏰' },
@@ -73,7 +73,7 @@
     { id: 'combo25', name: 'Hot streak', desc: 'Reach a 20-tap combo.', type: 'combo', goal: 20, reward: 30000 },
     { id: 'earn100k', name: 'Big round', desc: 'Earn 100,000 schooners today.', type: 'earn', goal: 100000, reward: 40000 },
     { id: 'buy10', name: 'Staff up', desc: 'Buy 10 cellar items today.', type: 'buys', goal: 10, reward: 20000 },
-    { id: 'golden', name: 'Lucky glass', desc: 'Catch a golden schooner.', type: 'golden', goal: 1, reward: 60000 }
+    { id: 'golden', name: 'Golden Shower', desc: 'Catch a Golden Shower.', type: 'golden', goal: 1, reward: 60000 }
   ];
 
   function findBy(list, id) {
