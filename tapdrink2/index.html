@@ -391,6 +391,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   margin: 0 0 8px;
   color: var(--foam);
   cursor: pointer;
+  touch-action: manipulation;
 }
 .item:active { transform: scale(.985); }
 .item.can { box-shadow: inset 0 0 0 1.5px rgba(245,166,35,.9); }
@@ -449,6 +450,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   padding: 20px 18px 16px;
   box-shadow: 0 18px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(245,166,35,.35);
 }
+.dialog:focus { outline: none; }
 .dialog h3 { margin: 0 0 8px; font-size: 22px; }
 .dialog p { margin: 0; color: rgba(255,248,231,.84); line-height: 1.4; }
 .dialog-actions { display: flex; gap: 10px; margin-top: 16px; }
@@ -459,10 +461,11 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   border-radius: 14px;
   font-weight: 800;
   cursor: pointer;
+  touch-action: manipulation;
 }
 #modalCancel, #modalOk.primary { background: var(--beer); color: #1A0F24; }
 #modalOk.danger {
-  background: transparent;
+  background: #4a1824;
   color: #ffb4bc;
   box-shadow: inset 0 0 0 1.5px rgba(255,93,108,.7);
 }
@@ -740,7 +743,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   </div>
 
   <div id="modal" class="overlay modal-layer" hidden>
-    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
       <h3 id="modalTitle"></h3>
       <p id="modalBody"></p>
       <div class="dialog-actions">
@@ -787,6 +790,8 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   var dirty = false;
   var pendingAway = null;
   var modalMode = null;
+  var modalOpenedAt = 0;
+  var dialogEl = modal.querySelector('.dialog');
   var audio = null;
   var lastSave = 0;
   var saveTimer = 0;
@@ -898,6 +903,11 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     return String(Math.floor(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
+  function fmtFull(n) {
+    if (!isFinite(n) || n < 0) n = 0;
+    return group(n);
+  }
+
   function fmt(n) {
     if (!isFinite(n) || n < 0) n = 0;
     if (n < 1e6) return group(n);
@@ -961,7 +971,7 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
 
   function signature() {
     var daily = state.daily || {};
-    var parts = [shopTab, String(buyMode), String(state.tokens), state.venue, state.skin, String(state.levels.gold), String(state.levels.diamond), String(state.prestiges), daily.day || '', String(daily.progress || 0), daily.done ? '1' : '0', daily.claimed ? '1' : '0', String(Object.keys(state.achievements).length)];
+    var parts = [shopTab, String(buyMode), String(state.tokens), state.venue, state.skin, String(state.levels.gold), String(state.levels.diamond), String(state.prestiges), 'g' + E.tokensFromRun(state.run), daily.day || '', String(daily.progress || 0), daily.done ? '1' : '0', daily.claimed ? '1' : '0', String(Object.keys(state.achievements).length)];
     var i;
     for (i = 0; i < E.UPGRADES.length; i++) {
       var u = E.UPGRADES[i];
@@ -1044,9 +1054,8 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
         html += itemHtml({ kind: 'skin', id: skin.id, icon: skin.icon, name: skin.name, own: on ? 'On' : '', desc: skin.desc, price: owned ? (on ? 'On' : 'Wear') : esc(fmt(skin.cost)), cls: on ? ' owned' : can ? ' can' : '' });
       });
     } else {
-      var gain = E.tokensFromRun(state.run);
-      var nextMult = (1 + (state.tokens + gain) * 0.05);
-      html += itemHtml({ kind: 'prestige', id: 'last', icon: '🎟️', name: 'Last Call', desc: gain ? ('Reset this run for ' + gain + ' Hangover Tokens. Permanent income becomes ×' + fmtMult(nextMult) + '.') : 'Pour 1,000,000 schooners this run to earn Hangover Tokens.', price: gain ? '+' + gain : '—', cls: gain ? ' can' : '' });
+      var quote = E.prestigeQuote(state);
+      html += itemHtml({ kind: 'prestige', id: 'last', icon: '🎟️', name: 'Last Call', desc: quote.ok ? ('Reset this run for ' + hangoverLabel(quote.gain) + '. Permanent income becomes ×' + fmtMult(quote.nextMult) + '.') : ('Need ' + fmtFull(quote.need) + ' schooners this run. You have ' + fmtFull(quote.have) + ' (' + fmtFull(quote.short) + ' to go). Lifetime ' + fmtFull(quote.lifetime) + '.'), price: quote.ok ? '+' + quote.gain : '—', cls: quote.ok ? ' can' : '' });
       var ch = E.ensureDaily(state);
       var daily = state.daily;
       var left = '';
@@ -1276,6 +1285,19 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     shopBtn.focus();
   }
 
+  function hangoverLabel(n) {
+    n = Math.floor(n || 0);
+    return n + ' Hangover Token' + (n === 1 ? '' : 's');
+  }
+
+  function lastCallNeedText(quote) {
+    return 'Need ' + fmtFull(quote.need) + ' schooners poured this run. This run is ' + fmtFull(quote.have) + ', so you still need ' + fmtFull(quote.short) + '. Lifetime earnings are ' + fmtFull(quote.lifetime) + ' and stay after Last Call; they do not unlock it on their own.';
+  }
+
+  function lastCallConfirmText(quote) {
+    return 'This run resets. You gain ' + hangoverLabel(quote.gain) + ' and all income becomes ×' + fmtMult(quote.nextMult) + '. Badges, venues, skins, and lifetime earnings (' + fmtFull(quote.lifetime) + ') stay.';
+  }
+
   function openModal(mode, title, body) {
     modalMode = mode;
     modalTitle.textContent = title;
@@ -1284,12 +1306,17 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     modalCancel.hidden = !danger;
     modalOk.textContent = mode === 'reset' ? 'Reset' : mode === 'prestige' ? 'Last Call' : 'Cheers';
     modalOk.className = danger ? 'danger' : 'primary';
+    modalOpenedAt = Date.now();
     modal.hidden = false;
-    (danger ? modalCancel : modalOk).focus();
+    if (dialogEl) {
+      try { dialogEl.focus({ preventScroll: true }); }
+      catch (err) { dialogEl.focus(); }
+    }
   }
 
   function dismissModal(confirm) {
     var mode = modalMode;
+    if (!mode) return;
     modal.hidden = true;
     modalMode = null;
     if (mode === 'reset' && confirm) doReset();
@@ -1322,10 +1349,13 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
 
   function doPrestige() {
     var result = E.prestige(state);
-    if (!result.ok) return;
+    if (!result.ok) {
+      openModal('need', "Last Call isn't ready", lastCallNeedText(E.prestigeQuote(state)));
+      return;
+    }
     combo = 0;
     lastSig = '';
-    toast('Last Call · +' + result.gain + ' tokens');
+    toast('Last Call · +' + result.gain + ' tokens · income ×' + fmtMult(result.mult));
     noteUnlocks(E.syncAchievements(state, {}));
     save();
     renderHud();
@@ -1382,9 +1412,13 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     if (kind === 'badge') return;
     if (kind === 'share') { shareCard(); return; }
     if (kind === 'prestige') {
-      var gain = E.tokensFromRun(state.run);
-      if (gain < 1) { shake(btn); return; }
-      openModal('prestige', 'Last Call?', 'This run resets. You keep ' + gain + ' new Hangover Tokens, your badges, venues, and skins. Tokens permanently boost income.');
+      var quote = E.prestigeQuote(state);
+      if (!quote.ok) {
+        shake(btn);
+        openModal('need', "Last Call isn't ready", lastCallNeedText(quote));
+        return;
+      }
+      openModal('prestige', 'Last Call?', lastCallConfirmText(quote));
       return;
     }
     if (kind === 'daily') {
@@ -1430,19 +1464,83 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
     }
   });
 
-  shopBtn.addEventListener('click', openSheet);
-  $('closeShop').addEventListener('click', closeSheet);
-  sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+  sheet.addEventListener('click', function (e) {
+    if (Date.now() < suppressClickUntil) return;
+    if (e.target === sheet) closeSheet();
+  });
   shopList.addEventListener('pointerdown', function () { holding = true; });
   window.addEventListener('pointerup', function () { holding = false; });
   window.addEventListener('pointercancel', function () { holding = false; });
+
+  var ignoreShopClick = false;
+  var shopTouch = null;
+  var suppressClickUntil = 0;
+
+  function itemFromEvent(e) {
+    var node = e.target;
+    if (!node) return null;
+    if (node.nodeType !== 1) node = node.parentElement;
+    if (!node || !node.closest) return null;
+    var btn = node.closest('.item');
+    if (!btn || btn.disabled || !shopList.contains(btn)) return null;
+    return btn;
+  }
+
+  shopList.addEventListener('touchstart', function (e) {
+    holding = true;
+    var t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    shopTouch = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+  shopList.addEventListener('touchcancel', function () {
+    holding = false;
+    shopTouch = null;
+  });
+  shopList.addEventListener('touchend', function (e) {
+    holding = false;
+    var t = e.changedTouches && e.changedTouches[0];
+    var start = shopTouch;
+    shopTouch = null;
+    if (!t || !start) return;
+    if (Math.abs(t.clientX - start.x) > 14 || Math.abs(t.clientY - start.y) > 14) return;
+    var btn = itemFromEvent(e);
+    if (!btn) return;
+    e.preventDefault();
+    ignoreShopClick = true;
+    suppressClickUntil = Date.now() + 700;
+    setTimeout(function () { ignoreShopClick = false; }, 700);
+    onBuy(btn);
+  }, { passive: false });
   shopList.addEventListener('click', function (e) {
-    var btn = e.target.closest('.item');
-    if (!btn || btn.disabled) return;
+    if (ignoreShopClick || Date.now() < suppressClickUntil) return;
+    var btn = itemFromEvent(e);
+    if (!btn) return;
     onBuy(btn);
   });
+
+  function bindTap(el, handler) {
+    var ignoreClick = false;
+    el.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      ignoreClick = true;
+      suppressClickUntil = Date.now() + 700;
+      setTimeout(function () { ignoreClick = false; }, 700);
+      handler(e);
+    }, { passive: false });
+    el.addEventListener('click', function (e) {
+      if (ignoreClick || Date.now() < suppressClickUntil) return;
+      handler(e);
+    });
+  }
+
+  function modalWillConfirm() {
+    return modalMode === 'reset' || modalMode === 'prestige';
+  }
+  bindTap(shopBtn, openSheet);
+  bindTap($('closeShop'), closeSheet);
   document.querySelectorAll('[data-tab]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
+    bindTap(btn, function () {
       shopTab = btn.getAttribute('data-tab');
       document.querySelectorAll('[data-tab]').forEach(function (b) { b.classList.toggle('on', b === btn); });
       renderShop(true);
@@ -1464,11 +1562,16 @@ footer { padding: 6px 16px calc(env(safe-area-inset-bottom) + 12px); }
   $('resetBtn').addEventListener('click', function () {
     openModal('reset', 'Start over?', 'This empties your schooners, sends the staff home, and clears every upgrade on this phone.');
   });
-  modalCancel.addEventListener('click', function () { dismissModal(false); });
-  modalOk.addEventListener('click', function () { dismissModal(modalMode === 'reset'); });
-  modal.addEventListener('click', function (e) {
-    if (e.target === modal && modalMode !== 'reset') dismissModal(false);
-  });
+  bindTap(modalCancel, function () { dismissModal(false); });
+  bindTap(modalOk, function () { dismissModal(modalWillConfirm()); });
+  function maybeBackdrop(e) {
+    if (e.type === 'click' && Date.now() < suppressClickUntil) return;
+    if (Date.now() - modalOpenedAt < 450) return;
+    if (e.target !== modal || modalMode === 'reset') return;
+    dismissModal(false);
+  }
+  modal.addEventListener('click', maybeBackdrop);
+  modal.addEventListener('touchend', maybeBackdrop);
   soundBtn.addEventListener('click', function () {
     state.sound = !state.sound;
     updateSound();
