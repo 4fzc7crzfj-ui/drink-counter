@@ -360,15 +360,36 @@
     return { ok: true, cost: skin.cost };
   }
 
+  var PRESTIGE_RUN = 1000000;
+
   function tokensFromRun(run) {
-    if (!(run >= 1000000)) return 0;
-    return Math.floor(Math.sqrt(run / 1000000));
+    if (!(run >= PRESTIGE_RUN)) return 0;
+    return Math.floor(Math.sqrt(run / PRESTIGE_RUN));
+  }
+
+  function prestigeQuote(state) {
+    var have = pos(state && state.run);
+    var lifetime = pos(state && state.total);
+    var held = Math.floor(pos(state && state.tokens));
+    var gain = tokensFromRun(have);
+    return {
+      ok: gain >= 1,
+      gain: gain,
+      need: PRESTIGE_RUN,
+      have: have,
+      short: gain >= 1 ? 0 : Math.max(0, Math.ceil(PRESTIGE_RUN - have)),
+      lifetime: lifetime,
+      tokens: held,
+      nextMult: 1 + (held + gain) * TOKEN_RATE
+    };
   }
 
   function prestige(state) {
-    var gain = tokensFromRun(state.run);
-    if (gain < 1) return { ok: false, gain: 0 };
-    state.tokens += gain;
+    var quote = prestigeQuote(state);
+    if (!quote.ok) {
+      return { ok: false, gain: 0, need: quote.need, have: quote.have, short: quote.short, lifetime: quote.lifetime };
+    }
+    state.tokens += quote.gain;
     state.prestiges += 1;
     state.schooners = 0;
     state.run = 0;
@@ -376,7 +397,7 @@
     state.upgrades = {};
     state.levels = { gold: 0, diamond: 0 };
     state.frenzyUntil = 0;
-    return { ok: true, gain: gain, mult: tokenMult(state) };
+    return { ok: true, gain: quote.gain, mult: tokenMult(state), tokens: state.tokens };
   }
 
   function quoteProducer(state, id, mode) {
@@ -525,8 +546,10 @@
     tryBuyVenue: tryBuyVenue,
     tryBuySkin: tryBuySkin,
     levelCost: levelCost,
+    PRESTIGE_RUN: PRESTIGE_RUN,
     tokensFromRun: tokensFromRun,
     tokenMult: tokenMult,
+    prestigeQuote: prestigeQuote,
     prestige: prestige,
     quoteProducer: quoteProducer,
     affordableCount: affordableCount,
