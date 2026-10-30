@@ -1,4 +1,4 @@
-/* Last Drinks at the Moist Wombat — party app. No server: everything lives in the link + localStorage. */
+/* Class of 2016: Dead Reunion — party app. No server: everything lives in the link + localStorage. */
 (function(){
 'use strict';
 var DK='MoistWombat31', TK='WOMBAT';
@@ -70,8 +70,8 @@ function landing(){
   var last=lsGet('mm_last',null),lastName='';
   if(last){var p=parseP(last);if(p)lastName=CH[p.id].name}
   render('<div class="tag">A Halloween murder mystery · 16–22 grown-ass adults</div>'+
-  '<h1 class="title">Last Drinks<br>at the<br>Moist Wombat</h1>'+
-  '<div class="sub">Beau\'s Halloween Booze-Fest · one dead publican · zero RSA</div><div class="drip"></div>'+
+  '<h1 class="title">Class of 2016:<br>Dead<br>Reunion</h1>'+
+  '<div class="sub">Mount Wombat High · 10-year reunion · one dead prom king · zero supervision</div><div class="drip"></div>'+
   '<div class="panel stack">'+
   (lastName?'<a class="btn green block" href="#p='+esc(last)+'">🩸 Back to my card: '+esc(lastName)+'</a>':'')+
   '<p class="center muted">Playing? Open the private link (or scan the QR) your host gave you. Don\'t go poking around the host bit — it has the answer in it.</p>'+
@@ -184,7 +184,7 @@ function player(t){
     }else inner='<div class="lock">🔒 Locked. The host will read out the Round '+r+' code.</div><div class="codein" style="margin-top:10px"><input id="code'+r+'" placeholder="ROUND '+r+' CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" data-a="pcode" data-id="'+r+'">Unlock</button></div><div class="err" id="cerr'+r+'"></div>';
     rounds+='<div class="round'+(open?' open':'')+'"><h3><span>Round '+r+' — '+ROUND_NAMES[r]+'</span><span>'+(open?'🔓':'🔒')+'</span></h3><div class="in">'+inner+'</div></div>';
   }}
-  render('<div class="topbar"><div class="t">Moist Wombat</div><button class="btn sm dark" data-a="veil">'+(veiled?'👁 Show':'🙈 Hide')+'</button></div>'+
+  render('<div class="topbar"><div class="t">Dead Reunion</div><button class="btn sm dark" data-a="veil">'+(veiled?'👁 Show':'🙈 Hide')+'</button></div>'+
    cardHtml(c)+rounds+
    '<div style="margin-top:18px"><button class="btn red block" data-a="accuse" style="min-height:64px;font-size:22px">☠ Make my accusation</button></div>'+
    '<p class="center small muted" style="margin-top:16px">Keep this tab open (or keep the link) — this card is only for you.</p>');
@@ -223,7 +223,7 @@ function board(t){
     if(u>=r)cols+='<div class="bcol"><h2>Round '+r+'</h2><div class="center tag">'+ROUND_NAMES[r]+'</div>'+D.clues.filter(function(x){return x.r===r}).map(function(x){return clueHtml(x,false)}).join('')+'</div>';
     else cols+='<div class="bcol locked"><h2>Round '+r+'</h2><div class="lockbig">🔒</div>'+(r===u+1?'<div class="codein"><input id="code'+r+'" placeholder="ROUND '+r+' CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" data-a="bcode" data-id="'+r+'" data-seed="'+seed+'">Unlock</button></div><div class="err" id="cerr'+r+'"></div>':'')+'</div>';
   }
-  render('<div class="board"><h1 class="title">The Evidence Board</h1><div class="tag">Last Drinks at the Moist Wombat · Beau died at 10:48pm · nobody leaves</div><div class="drip"></div><div class="bcols">'+cols+'</div>'+
+  render('<div class="board"><h1 class="title">The Evidence Board</h1><div class="tag">Class of 2016: Dead Reunion · Beau died at 10:48pm · nobody leaves the hall</div><div class="drip"></div><div class="bcols">'+cols+'</div>'+
   '<p class="center" style="margin-top:30px"><a class="btn ghost sm" href="#">Home</a></p></div>',true);
   try{if(navigator.wakeLock&&!board._wl)navigator.wakeLock.request('screen').then(function(l){board._wl=l;l.addEventListener('release',function(){board._wl=null})}).catch(function(){})}catch(e){}
 }
@@ -257,7 +257,7 @@ document.addEventListener('click',function(ev){
   case 'cast':{var n=+id;if(CH[n].core){toast('Core roles 1–16 are always in play');break}
     var i=H.cast.indexOf(n);if(i>=0)H.cast.splice(i,1);else H.cast.push(n);H.cast.sort(function(x,y){return x-y});saveH();var y=window.scrollY;hostDash();window.scrollTo(0,y);break}
   case 'qr':{var c=CH[+id],url=playerUrl(+id);modal('<div class="box"><div class="cname" style="font-size:36px">'+esc(c.name)+'</div><p class="small muted">Scan with the phone camera. For '+esc(c.name)+'\'s eyes only.</p><div class="qr">'+qrSvg(url)+'</div><div class="linkbox">'+esc(url)+'</div><div class="row"><button class="btn green" data-a="share" data-id="'+c.id+'">📤 Share</button><button class="btn dark" data-a="copy" data-id="'+c.id+'">📋 Copy</button></div><button class="btn ghost block" data-a="close" style="margin-top:10px">Close</button></div>');break}
-  case 'share':{var c2=CH[+id];share('Last Drinks at the Moist Wombat','🩸 '+c2.name+' — your secret character for Last Drinks at the Moist Wombat. Don\'t show anyone!',playerUrl(+id));break}
+  case 'share':{var c2=CH[+id];share('Class of 2016: Dead Reunion','🩸 '+c2.name+' — your secret character for Class of 2016: Dead Reunion. Don\'t show anyone!',playerUrl(+id));break}
   case 'copy':copy(playerUrl(+id));break;
   case 'copyall':copy(H.cast.map(function(i){return CH[i].name+': '+playerUrl(i)}).join('\n'));break;
   case 'peek':modal('<div class="box" style="text-align:left;max-width:700px;padding:10px"><button class="btn dark block sm" data-a="close" style="margin-bottom:10px">✕ Close</button>'+cardHtml(CH[+id])+'<button class="btn block" data-a="close" style="margin-top:12px">Close</button></div>');break;
