@@ -1,0 +1,13 @@
+{
+  "name": "Last Drinks at the Moist Wombat",
+  "short_name": "Moist Wombat",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d0710",
+  "theme_color": "#0d0710",
+  "icons": [
+    {"src": "icon-180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
