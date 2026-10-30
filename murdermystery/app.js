@@ -7,7 +7,7 @@ function dec(b64){var s=atob(b64),u=new Uint8Array(s.length);for(var i=0;i<s.len
 var D=dec(window.MM_DATA), CH={};
 D.chars.forEach(function(c){CH[c.id]=c});
 var CORE=D.chars.filter(function(c){return c.core}).map(function(c){return c.id});
-var OPT_ORDER=[20,17,19,18,21,22]; // scaling cheat-sheet: Bev, Sam, Lazza, Tayla, Ghost, Trev
+var OPT_ORDER=[20,17,19,18,21,22]; // scaling cheat-sheet: Vivienne, Sam, Lazza, Sienna, Ghost, Trev
 var ROUND_NAMES=['','Who Hated Bazza?','Who Could Get In?',"Who's Lying?"];
 var WORDS=['SCHOONER','PARMY','BUNDY','COASTER','JUKEBOX','SHANDY','STUBBY','ESKY','LAMINGTON','PAVLOVA','TINNIE','MOZZIE','DUNNY','YOBBO','GOON','SAUSAGEROLL','MEATPIE','BOGAN','GALAH','DROPBEAR'];
 
@@ -125,7 +125,7 @@ function hostLinks(){
       (on?'<div class="row" style="padding:0 0 10px 0"><button class="btn sm" data-a="qr" data-id="'+c.id+'">▦ QR</button><button class="btn sm green" data-a="share" data-id="'+c.id+'">📤 Share</button><button class="btn sm dark" data-a="copy" data-id="'+c.id+'">📋 Copy</button><button class="btn sm ghost" data-a="peek" data-id="'+c.id+'">👁 Card</button></div>':'');
   }).join('');
   return '<div class="panel"><div class="row" style="align-items:center"><div class="count">'+n+' in play</div></div>'+
-   '<p class="small muted">Roles 1–16 are core and always in. Optional roles (17–20) can be cut in any order; add the bonus walk-ons (Ghost of Bazza, Trev) for 21–22 guests. Cheat-sheet: 17 = + Bev · 18 = + Sam Cuffs · 19 = + Lazza · 20 = + Tayla · 21 = + Ghost · 22 = + Trev. If Constable Cuffs is cut, the host reads the "we\'re locking the doors" line.</p>'+
+   '<p class="small muted">Roles 1–16 are core and always in. Optional roles (17–20) can be cut in any order; add the bonus walk-ons (Ghost of Bazza, Trev) for 21–22 guests. Cheat-sheet: 17 = + Vivienne · 18 = + Sam Cuffs · 19 = + Lazza · 20 = + Sienna · 21 = + Ghost · 22 = + Trev. If Constable Cuffs is cut, the host reads the "we\'re locking the doors" line.</p>'+
    '<p class="small"><b>Send each link privately</b> (DM, not the group chat) or let each guest scan their QR. The link only opens that one character. Settle the cast before sending links — links made earlier keep working, but their accusation list uses the old cast.</p>'+
    rows+'<hr><button class="btn dark block" data-a="copyall">📋 Copy all links (for your notes)</button></div>';
 }
