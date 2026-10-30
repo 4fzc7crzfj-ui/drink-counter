@@ -7,7 +7,6 @@ function dec(b64){var s=atob(b64),u=new Uint8Array(s.length);for(var i=0;i<s.len
 var D=dec(window.MM_DATA), CH={};
 D.chars.forEach(function(c){CH[c.id]=c});
 var CORE=D.chars.filter(function(c){return c.core}).map(function(c){return c.id});
-var OPT_ORDER=[20,17,19,18,21,22]; // scaling cheat-sheet: Vivienne, Sam, Lorenzo, Sienna, Ghost, Theo
 var ROUND_NAMES=['','Who Hated Beau?','Who Could Get In?',"Who's Lying?"];
 var WORDS=['SCHOONER','PARMY','BUNDY','COASTER','JUKEBOX','SHANDY','STUBBY','ESKY','LAMINGTON','PAVLOVA','TINNIE','MOZZIE','DUNNY','YOBBO','GOON','SAUSAGEROLL','MEATPIE','BOGAN','GALAH','DROPBEAR'];
 
@@ -25,7 +24,7 @@ function unb64u(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='
 function tok(str){var b=u8(str);for(var i=0;i<b.length;i++)b[i]^=TK.charCodeAt(i%TK.length)^(i*7&255);return b64u(b)}
 function untok(t){try{var b=unb64u(t);for(var i=0;i<b.length;i++)b[i]^=TK.charCodeAt(i%TK.length)^(i*7&255);return new TextDecoder().decode(b)}catch(e){return null}}
 function maskOf(ids){var m=0;ids.forEach(function(i){m|=(1<<(i-1))});return (m>>>0).toString(36)}
-function idsOf(mask){var m=parseInt(mask,36)>>>0,out=[];for(var i=1;i<=22;i++)if(m&(1<<(i-1)))out.push(i);return out}
+function idsOf(mask){var m=parseInt(mask,36)>>>0,out=[];for(var i=1;i<=22;i++)if(m&(1<<(i-1))&&CH[i])out.push(i);return out}
 function newSeed(){var s='';var a='abcdefghjkmnpqrstuvwxyz23456789';var r=new Uint8Array(6);(window.crypto||{}).getRandomValues?crypto.getRandomValues(r):r.forEach(function(_,i){r[i]=Math.random()*256});for(var i=0;i<6;i++)s+=a[r[i]%a.length];return s}
 function codes(seed){var R=rng('codes|'+seed),w=WORDS.slice();for(var i=w.length-1;i>0;i--){var j=Math.floor(R()*(i+1));var t=w[i];w[i]=w[j];w[j]=t}
   return [null,w[0]+(10+Math.floor(R()*90)),w[1]+(10+Math.floor(R()*90)),w[2]+(10+Math.floor(R()*90))]}
@@ -47,6 +46,7 @@ function render(html,wide){var a=$('#app');a.className=wide?'wide':'';a.innerHTM
 
 /* ---------- state ---------- */
 var H=lsGet('mm_host',null); // {pin, seed, cast}
+if(H&&H.cast){H.cast=H.cast.filter(function(i){return CH[i]});CORE.forEach(function(i){if(H.cast.indexOf(i)<0)H.cast.push(i)});H.cast.sort(function(x,y){return x-y});lsSet('mm_host',H)}
 var view={}; // transient UI state
 function saveH(){lsSet('mm_host',H)}
 function hostOk(){return H&&H.pin&&ssGet('mm_hostok')===H.pin}
@@ -69,7 +69,7 @@ function go(h){if(location.hash==='#'+h)route();else location.hash=h}
 function landing(){
   var last=lsGet('mm_last',null),lastName='';
   if(last){var p=parseP(last);if(p)lastName=CH[p.id].name}
-  render('<div class="tag">A Halloween murder mystery · 16–22 grown-ass adults</div>'+
+  render('<div class="tag">A Halloween murder mystery · 8–16 grown-ass adults</div>'+
   '<h1 class="title">Class of 2016:<br>Dead<br>Reunion</h1>'+
   '<div class="sub">Mount Wombat High · 10-year reunion · one dead prom king · zero supervision</div><div class="drip"></div>'+
   '<div class="sec hot center" style="margin-bottom:14px">🎒 '+D.dress+'</div>'+
@@ -126,14 +126,14 @@ function hostLinks(){
       (on?'<div class="row" style="padding:0 0 10px 0"><button class="btn sm" data-a="qr" data-id="'+c.id+'">▦ QR</button><button class="btn sm green" data-a="share" data-id="'+c.id+'">📤 Share</button><button class="btn sm dark" data-a="copy" data-id="'+c.id+'">📋 Copy</button><button class="btn sm ghost" data-a="peek" data-id="'+c.id+'">👁 Card</button></div>':'');
   }).join('');
   return '<div class="panel"><div class="row" style="align-items:center"><div class="count">'+n+' in play</div></div>'+
-   '<p class="small muted">Roles 1–16 are core and always in. Optional roles (17–20) can be cut in any order; add the bonus walk-ons (Ghost of Beau, Theo) for 21–22 guests. Cheat-sheet: 17 = + Vivienne · 18 = + Sam Cuffs · 19 = + Lorenzo · 20 = + Sienna · 21 = + Ghost · 22 = + Theo. If Constable Cuffs is cut, the host reads the "we\'re locking the doors" line.</p>'+
+   '<p class="small muted">Plays <b>8–16</b>. Roles 1–8 are core and always in (killer, body-finder and key witnesses). Add optional roles 9–16 in order: 9 = + Jade · 10 = + Brock · 11 = + Pierce · 12 = + Luca · 13 = + Max · 14 = + Hugo · 15 = + Remy · 16 = + Marcus. Any clue whose holder isn\'t playing is marked <b>HOST reads</b> on the Round Codes tab — you read it out, and it still shows on the Evidence Board.</p>'+
    '<p class="small"><b>Send each link privately</b> (DM, not the group chat) or let each guest scan their QR. The link only opens that one character. Settle the cast before sending links — links made earlier keep working, but their accusation list uses the old cast.</p>'+
    rows+'<hr><button class="btn dark block" data-a="copyall">📋 Copy all links (for your notes)</button></div>';
 }
 function hostCodes(){
   var C=codes(H.seed),u=unlocked(H.seed),out='';
   for(var r=1;r<=3;r++){
-    var cl=D.clues.filter(function(x){return x.r===r}).map(function(x){return '<li><b>'+x.n+'. '+esc(x.title)+'</b> → '+(x.hid?esc(CH[x.hid].name):'HOST reads aloud')+'</li>'}).join('');
+    var cl=D.clues.filter(function(x){return x.r===r}).map(function(x){return '<li><b>'+x.n+'. '+esc(x.title)+'</b> → '+(x.hid?(H.cast.indexOf(x.hid)>=0?esc(CH[x.hid].name):'<b>HOST reads</b> ('+esc(CH[x.hid].name)+' not playing)'):'HOST reads aloud')+'</li>'}).join('');
     out+='<div class="codebox"><div class="lbl">Round '+r+' — '+ROUND_NAMES[r]+'</div><div class="c">'+C[r]+'</div>'+
     '<p class="small muted">Read this out at the start of Round '+r+'. Players type it in to unlock their Round '+r+' objective and clues.</p>'+
     '<ul style="text-align:left" class="small">'+cl+'</ul>'+
@@ -256,7 +256,7 @@ document.addEventListener('click',function(ev){
   case 'lock':ssSet('mm_hostok','');go('');break;
   case 'tab':view.tab=id;hostDash();window.scrollTo(0,0);break;
   case 'reveal':view['rev'+id]=1;hostDash();break;
-  case 'cast':{var n=+id;if(CH[n].core){toast('Core roles 1–16 are always in play');break}
+  case 'cast':{var n=+id;if(CH[n].core){toast('Core roles 1–8 are always in play');break}
     var i=H.cast.indexOf(n);if(i>=0)H.cast.splice(i,1);else H.cast.push(n);H.cast.sort(function(x,y){return x-y});saveH();var y=window.scrollY;hostDash();window.scrollTo(0,y);break}
   case 'qr':{var c=CH[+id],url=playerUrl(+id);modal('<div class="box"><div class="cname" style="font-size:36px">'+esc(c.name)+'</div><p class="small muted">Scan with the phone camera. For '+esc(c.name)+'\'s eyes only.</p><div class="qr">'+qrSvg(url)+'</div><div class="linkbox">'+esc(url)+'</div><div class="row"><button class="btn green" data-a="share" data-id="'+c.id+'">📤 Share</button><button class="btn dark" data-a="copy" data-id="'+c.id+'">📋 Copy</button></div><button class="btn ghost block" data-a="close" style="margin-top:10px">Close</button></div>');break}
   case 'share':{var c2=CH[+id];share('Class of 2016: Dead Reunion','🩸 '+c2.name+' — your secret character for Class of 2016: Dead Reunion. Don\'t show anyone!',playerUrl(+id));break}
