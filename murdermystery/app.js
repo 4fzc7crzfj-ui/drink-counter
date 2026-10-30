@@ -180,7 +180,7 @@ function player(t){
     if(open){
       var mine=D.clues.filter(function(x){return x.r===r&&(x.hid===c.id||(r===1&&!x.hid))});
       inner='<span class="lbl">Your Round '+r+' objective</span><div>'+c.r[r-1]+'</div>'+
-      (mine.length?'<hr><span class="lbl">'+(r===1?'Evidence':'Your evidence — read it aloud, then pin it to the board')+'</span>'+mine.map(function(x){return clueHtml(x,!x.hid)}).join(''):'');
+      (mine.length?'<hr><span class="lbl">'+(r===1?'Evidence':'Your evidence — when the host calls your name, read it aloud to the room (it also shows on the Evidence Board)')+'</span>'+mine.map(function(x){return clueHtml(x,!x.hid)}).join(''):'');
     }else inner='<div class="lock">🔒 Locked. The host will read out the Round '+r+' code.</div><div class="codein" style="margin-top:10px"><input id="code'+r+'" placeholder="ROUND '+r+' CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" data-a="pcode" data-id="'+r+'">Unlock</button></div><div class="err" id="cerr'+r+'"></div>';
     rounds+='<div class="round'+(open?' open':'')+'"><h3><span>Round '+r+' — '+ROUND_NAMES[r]+'</span><span>'+(open?'🔓':'🔒')+'</span></h3><div class="in">'+inner+'</div></div>';
   }}
