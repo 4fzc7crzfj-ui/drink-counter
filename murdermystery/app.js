@@ -7,8 +7,8 @@ function dec(b64){var s=atob(b64),u=new Uint8Array(s.length);for(var i=0;i<s.len
 var D=dec(window.MM_DATA), CH={};
 D.chars.forEach(function(c){CH[c.id]=c});
 var CORE=D.chars.filter(function(c){return c.core}).map(function(c){return c.id});
-var OPT_ORDER=[20,17,19,18,21,22]; // scaling cheat-sheet: Vivienne, Sam, Lazza, Sienna, Ghost, Trev
-var ROUND_NAMES=['','Who Hated Bazza?','Who Could Get In?',"Who's Lying?"];
+var OPT_ORDER=[20,17,19,18,21,22]; // scaling cheat-sheet: Vivienne, Sam, Lorenzo, Sienna, Ghost, Theo
+var ROUND_NAMES=['','Who Hated Beau?','Who Could Get In?',"Who's Lying?"];
 var WORDS=['SCHOONER','PARMY','BUNDY','COASTER','JUKEBOX','SHANDY','STUBBY','ESKY','LAMINGTON','PAVLOVA','TINNIE','MOZZIE','DUNNY','YOBBO','GOON','SAUSAGEROLL','MEATPIE','BOGAN','GALAH','DROPBEAR'];
 
 /* ---------- tiny helpers ---------- */
@@ -71,7 +71,7 @@ function landing(){
   if(last){var p=parseP(last);if(p)lastName=CH[p.id].name}
   render('<div class="tag">A Halloween murder mystery · 16–22 grown-ass adults</div>'+
   '<h1 class="title">Last Drinks<br>at the<br>Moist Wombat</h1>'+
-  '<div class="sub">Bazza\'s Halloween Booze-Fest · one dead publican · zero RSA</div><div class="drip"></div>'+
+  '<div class="sub">Beau\'s Halloween Booze-Fest · one dead publican · zero RSA</div><div class="drip"></div>'+
   '<div class="panel stack">'+
   (lastName?'<a class="btn green block" href="#p='+esc(last)+'">🩸 Back to my card: '+esc(lastName)+'</a>':'')+
   '<p class="center muted">Playing? Open the private link (or scan the QR) your host gave you. Don\'t go poking around the host bit — it has the answer in it.</p>'+
@@ -125,7 +125,7 @@ function hostLinks(){
       (on?'<div class="row" style="padding:0 0 10px 0"><button class="btn sm" data-a="qr" data-id="'+c.id+'">▦ QR</button><button class="btn sm green" data-a="share" data-id="'+c.id+'">📤 Share</button><button class="btn sm dark" data-a="copy" data-id="'+c.id+'">📋 Copy</button><button class="btn sm ghost" data-a="peek" data-id="'+c.id+'">👁 Card</button></div>':'');
   }).join('');
   return '<div class="panel"><div class="row" style="align-items:center"><div class="count">'+n+' in play</div></div>'+
-   '<p class="small muted">Roles 1–16 are core and always in. Optional roles (17–20) can be cut in any order; add the bonus walk-ons (Ghost of Bazza, Trev) for 21–22 guests. Cheat-sheet: 17 = + Vivienne · 18 = + Sam Cuffs · 19 = + Lazza · 20 = + Sienna · 21 = + Ghost · 22 = + Trev. If Constable Cuffs is cut, the host reads the "we\'re locking the doors" line.</p>'+
+   '<p class="small muted">Roles 1–16 are core and always in. Optional roles (17–20) can be cut in any order; add the bonus walk-ons (Ghost of Beau, Theo) for 21–22 guests. Cheat-sheet: 17 = + Vivienne · 18 = + Sam Cuffs · 19 = + Lorenzo · 20 = + Sienna · 21 = + Ghost · 22 = + Theo. If Constable Cuffs is cut, the host reads the "we\'re locking the doors" line.</p>'+
    '<p class="small"><b>Send each link privately</b> (DM, not the group chat) or let each guest scan their QR. The link only opens that one character. Settle the cast before sending links — links made earlier keep working, but their accusation list uses the old cast.</p>'+
    rows+'<hr><button class="btn dark block" data-a="copyall">📋 Copy all links (for your notes)</button></div>';
 }
@@ -196,7 +196,7 @@ function accuseView(p){
   if(view.showAcc){
     var w=CH[a.who];
     render('<div class="show"><div class="tag">'+esc(c.name)+' says…</div><div class="big">J\'accuse, ya grub!</div>'+
-    '<div class="q">Who killed Bazza</div><div class="cname" style="font-size:clamp(36px,11vw,64px)">'+(w?esc(w.name):'???')+'</div>'+
+    '<div class="q">Who killed Beau</div><div class="cname" style="font-size:clamp(36px,11vw,64px)">'+(w?esc(w.name):'???')+'</div>'+
     '<div class="q">How did they get into the cool room</div><div class="a">'+esc(a.how||'—')+'</div>'+
     '<div class="q">Why did they do it</div><div class="a">'+esc(a.why||'—')+'</div>'+
     '<div class="q">The lie that gave them away</div><div class="a">'+esc(a.lie||'—')+'</div>'+
@@ -204,7 +204,7 @@ function accuseView(p){
   }
   render('<div class="topbar"><div class="t">Accusation</div><button class="btn sm dark" data-a="back">← My card</button></div>'+
   '<div class="panel stack"><h2 class="cname" style="font-size:42px;color:var(--red)">J\'accuse, ya grub!</h2>'+
-  '<div><span class="lbl">Who killed Bazza</span><select id="aw"><option value="">Pick a suspect…</option>'+opts+'</select></div>'+
+  '<div><span class="lbl">Who killed Beau</span><select id="aw"><option value="">Pick a suspect…</option>'+opts+'</select></div>'+
   '<div><span class="lbl">How did they get into the cool room</span><textarea id="ah">'+esc(a.how)+'</textarea></div>'+
   '<div><span class="lbl">Why did they do it</span><textarea id="ay">'+esc(a.why)+'</textarea></div>'+
   '<div><span class="lbl">The lie that gave them away</span><textarea id="al">'+esc(a.lie)+'</textarea></div>'+
@@ -223,7 +223,7 @@ function board(t){
     if(u>=r)cols+='<div class="bcol"><h2>Round '+r+'</h2><div class="center tag">'+ROUND_NAMES[r]+'</div>'+D.clues.filter(function(x){return x.r===r}).map(function(x){return clueHtml(x,false)}).join('')+'</div>';
     else cols+='<div class="bcol locked"><h2>Round '+r+'</h2><div class="lockbig">🔒</div>'+(r===u+1?'<div class="codein"><input id="code'+r+'" placeholder="ROUND '+r+' CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn" data-a="bcode" data-id="'+r+'" data-seed="'+seed+'">Unlock</button></div><div class="err" id="cerr'+r+'"></div>':'')+'</div>';
   }
-  render('<div class="board"><h1 class="title">The Evidence Board</h1><div class="tag">Last Drinks at the Moist Wombat · Bazza died at 10:48pm · nobody leaves</div><div class="drip"></div><div class="bcols">'+cols+'</div>'+
+  render('<div class="board"><h1 class="title">The Evidence Board</h1><div class="tag">Last Drinks at the Moist Wombat · Beau died at 10:48pm · nobody leaves</div><div class="drip"></div><div class="bcols">'+cols+'</div>'+
   '<p class="center" style="margin-top:30px"><a class="btn ghost sm" href="#">Home</a></p></div>',true);
   try{if(navigator.wakeLock&&!board._wl)navigator.wakeLock.request('screen').then(function(l){board._wl=l;l.addEventListener('release',function(){board._wl=null})}).catch(function(){})}catch(e){}
 }
