@@ -34,8 +34,8 @@ function baseUrl(){return location.href.split('#')[0].split('?')[0]}
 function unlocked(seed){return lsGet('mm_u_'+seed,0)}
 function setUnlocked(seed,n){lsSet('mm_u_'+seed,n)}
 function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.add('hidden')},2200)}
-function modal(html){var m=$('#modal');m.innerHTML=html;m.classList.remove('hidden');m.scrollTop=0}
-function closeModal(){var m=$('#modal');m.classList.add('hidden');m.innerHTML=''}
+function modal(html){var m=$('#modal');m.innerHTML=html;m.classList.remove('hidden');m.scrollTop=0;document.body.classList.add('noscroll')}
+function closeModal(){var m=$('#modal');m.classList.add('hidden');m.innerHTML='';document.body.classList.remove('noscroll')}
 function ask(msg,yesLabel,fn){ask.fn=fn;modal('<div class="box"><p style="font-size:19px">'+msg+'</p><div class="row"><button class="btn dark" data-a="close">Cancel</button><button class="btn red" data-a="askyes">'+esc(yesLabel)+'</button></div></div>')}
 function copy(text){
   function fb(){var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.top='-1000px';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);var ok=false;try{ok=document.execCommand('copy')}catch(e){}document.body.removeChild(ta);toast(ok?'Copied!':'Copy failed — long-press the link to copy')}
@@ -260,7 +260,7 @@ document.addEventListener('click',function(ev){
   case 'share':{var c2=CH[+id];share('Last Drinks at the Moist Wombat','🩸 '+c2.name+' — your secret character for Last Drinks at the Moist Wombat. Don\'t show anyone!',playerUrl(+id));break}
   case 'copy':copy(playerUrl(+id));break;
   case 'copyall':copy(H.cast.map(function(i){return CH[i].name+': '+playerUrl(i)}).join('\n'));break;
-  case 'peek':modal('<div class="box" style="text-align:left;max-width:700px">'+cardHtml(CH[+id])+'<button class="btn block" data-a="close" style="margin-top:12px">Close</button></div>');break;
+  case 'peek':modal('<div class="box" style="text-align:left;max-width:700px;padding:10px"><button class="btn dark block sm" data-a="close" style="margin-bottom:10px">✕ Close</button>'+cardHtml(CH[+id])+'<button class="btn block" data-a="close" style="margin-top:12px">Close</button></div>');break;
   case 'hunlock':setUnlocked(H.seed,Math.max(unlocked(H.seed),+id));toast('Round '+id+' unlocked on this device');hostDash();break;
   case 'relock':ask('Re-lock all rounds on this device\'s Evidence Board?','Re-lock',function(){setUnlocked(H.seed,0);hostDash()});break;
   case 'bqr':modal('<div class="box"><div class="cname" style="font-size:36px">Evidence Board</div><div class="qr">'+qrSvg(boardUrl())+'</div><div class="linkbox">'+esc(boardUrl())+'</div><button class="btn ghost block" data-a="close">Close</button></div>');break;
