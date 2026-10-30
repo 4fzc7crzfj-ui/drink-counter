@@ -1,5 +1,5 @@
-const C='mm-murder-v6';
-const F=['./','index.html','app.css?v=6','app.js?v=6','data.js?v=6','qrcode.js?v=6','manifest.json','icon-180.png','icon-512.png'];
+const C='mm-murder-v7';
+const F=['./','index.html','app.css?v=7','app.js?v=7','data.js?v=7','qrcode.js?v=7','manifest.json','icon-180.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith('mm-')&&x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{

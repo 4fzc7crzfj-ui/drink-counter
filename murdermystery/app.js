@@ -72,6 +72,7 @@ function landing(){
   render('<div class="tag">A Halloween murder mystery · 16–22 grown-ass adults</div>'+
   '<h1 class="title">Class of 2016:<br>Dead<br>Reunion</h1>'+
   '<div class="sub">Mount Wombat High · 10-year reunion · one dead prom king · zero supervision</div><div class="drip"></div>'+
+  '<div class="sec hot center" style="margin-bottom:14px">🎒 '+D.dress+'</div>'+
   '<div class="panel stack">'+
   (lastName?'<a class="btn green block" href="#p='+esc(last)+'">🩸 Back to my card: '+esc(lastName)+'</a>':'')+
   '<p class="center muted">Playing? Open the private link (or scan the QR) your host gave you. Don\'t go poking around the host bit — it has the answer in it.</p>'+
@@ -154,11 +155,12 @@ function hostMore(){return '<div class="panel stack"><span class="lbl">Settings<
 /* ---------- player ---------- */
 function parseP(t){var s=untok(t);if(!s)return null;var p=s.split('.');if(p.length!==3)return null;var id=+p[1];if(!CH[id]||!/^[a-z0-9]{4,10}$/.test(p[0]))return null;return {seed:p[0],id:id,cast:idsOf(p[2]),t:t}}
 function cardHtml(c){
-  if(c.extra)return '<div class="panel"><div class="cname">'+esc(c.name)+'</div><div class="ctitle">“'+c.title+'”</div><div class="pills"><span class="o">Bonus walk-on role</span></div><div class="sec">'+c.text+'</div><div class="foot">'+D.rule+'</div></div>';
+  if(c.extra)return '<div class="panel"><div class="cname">'+esc(c.name)+'</div><div class="ctitle">“'+c.title+'”</div><div class="pills"><span class="o">Bonus walk-on role</span></div><div class="sec hot">🎒 '+D.dress+'</div><div class="sec">'+c.text+'</div><div class="foot">'+D.rule+'</div></div>';
   var k=c.k;
   return '<div class="panel'+(k?' killer':'')+'"><div class="cname">'+esc(c.name)+'</div><div class="ctitle">“'+c.title+'”</div>'+
   '<div class="pills"><span>'+c.g+'</span>'+(c.core?'<span>Core</span>':'<span class="o">Optional — cuttable</span>')+(k?'<span class="o">★ The murderer ★</span>':'')+'</div>'+
-  '<div class="sec"><span class="lbl">Costume</span>'+c.costume+'</div>'+
+  '<div class="sec hot">🎒 '+D.dress+'</div>'+
+  '<div class="sec"><span class="lbl">Costume (over your school uniform)</span>'+c.costume+'</div>'+
   '<div class="sec"><span class="lbl">Personality</span>'+c.pers+'</div>'+
   '<div class="hideable"><div class="sec"><span class="lbl">'+(k?'The truth':'Your story')+'</span>'+c.story+'</div>'+
   '<div class="sec dash"><span class="lbl">'+(k?'What you did':'Your secret')+'</span>'+c.secret+'</div>'+
