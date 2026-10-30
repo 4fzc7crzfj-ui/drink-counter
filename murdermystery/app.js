@@ -187,7 +187,7 @@ function player(t){
   render('<div class="topbar"><div class="t">Moist Wombat</div><button class="btn sm dark" data-a="veil">'+(veiled?'👁 Show':'🙈 Hide')+'</button></div>'+
    cardHtml(c)+rounds+
    '<div style="margin-top:18px"><button class="btn red block" data-a="accuse" style="min-height:64px;font-size:22px">☠ Make my accusation</button></div>'+
-   '<p class="center small muted" style="margin-top:16px">Tip: Share → Add to Home Screen to keep this handy. This card is only for you.</p>');
+   '<p class="center small muted" style="margin-top:16px">Keep this tab open (or keep the link) — this card is only for you.</p>');
   if(veiled)document.querySelectorAll('.hideable').forEach(function(e){e.classList.add('veiled')});
 }
 function accuseView(p){
